@@ -1,6 +1,8 @@
 
 import pygame
 import random
+from train import generate_startfield
+
 # initialisation de Pygame
 
 pygame.init()
@@ -51,17 +53,14 @@ def enemy(x, y):
 
 running = True
 while running:
-
-    # RGB  -  Red , Green, Blue
     screen.fill((0, 0, 0))
-    #  BackGrounds
     screen.blit(background,(0,0))
-   ##
-
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+
 
         # demande  quel touche est enfoncé  Droite / Gauche
         if event.type == pygame.KEYDOWN:
@@ -76,6 +75,10 @@ while running:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 playerX_change = 0
                 print(" la touche a ete relaché")
+
+    generate_startfield(screen,200)
+
+
 
 
 # Controleur  de  Joeueur  Player control
@@ -102,4 +105,8 @@ while running:
 
     player(playerX,playerY)
     enemy(enemyX, enemyY)
+    pygame.display.flip()
     pygame.display.update()
+
+
+pygame.quit()
