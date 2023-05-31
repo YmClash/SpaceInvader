@@ -1,12 +1,12 @@
 import pygame
 import random
-
-pygame.init()
-
-longeur = 800
-largeur = 600
-
-screen = pygame.display.set_mode((longeur,largeur))
+#
+# pygame.init()
+#
+# longeur = 800
+# largeur = 600
+#
+# screen = pygame.display.set_mode((longeur,largeur))
 
 def generate_startfield(screen, num_stars):
     for s in range(num_stars):
@@ -21,19 +21,19 @@ def generate_startfield(screen, num_stars):
 
 
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-
-    generate_startfield(screen,20)
-
-    pygame.display.flip()
-
-
-pygame.quit()
-
+# running = True
+# while running:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running = False
+#
+#
+#     generate_startfield(screen,20)
+#
+#     pygame.display.flip()
+#
+#
+# pygame.quit()
+#
 
 
