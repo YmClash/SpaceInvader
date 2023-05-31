@@ -13,7 +13,7 @@ fenetre = pygame.display.set_mode((largeur, hauteur))
 # Position initiale du joueur
 joueur_x = 100
 joueur_y = 100
-
+taille_du_joueur = 20
 # Vitesse de déplacement du joueur
 vitesse = 1
 
@@ -42,12 +42,12 @@ while running:
     # Vérifier les limites de l'écran
     if joueur_x < 0:
         joueur_x = 0
-    elif joueur_x > largeur:
-        joueur_x = largeur
+    elif joueur_x > largeur - taille_du_joueur:
+        joueur_x = largeur -taille_du_joueur
     if joueur_y < 0:
         joueur_y = 0
-    elif joueur_y > hauteur:
-        joueur_y = hauteur
+    elif joueur_y > hauteur - taille_du_joueur:
+        joueur_y = hauteur - taille_du_joueur
 
     # Effacer l'écran
     fenetre.fill((0, 0, 0))  # Noir
@@ -57,6 +57,11 @@ while running:
 
     # Mettre à jour l'affichage
     pygame.display.flip()
+
+
+info = pygame.display.gl_get_attribute()
+print(f'info: {info}')
+
 
 # Quitter Pygame
 pygame.quit()

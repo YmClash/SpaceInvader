@@ -7,19 +7,24 @@ pygame.init()
 
 hauteur = 800
 largeur = 600
-vitesse = 0.3
+vitesse = 1
 surface = pygame.display.set_mode((hauteur, largeur))
 
 # le  joueur
-ship = pygame.image.load('mogwai .PNG')
-ship_x = largeur/2
-ship_y = hauteur/2
+#la taille est 750X545
+ship = pygame.image.load('mogwai .PNG').convert()
+ship_x =750 / 2
+ship_y = 545 / 2
 ship_x_change = 0
 ship_y_change = 0
+joueur_largeur = 50
+joueur_hauteur = 50
 
+max_x=750
+max_y=545
 # food
 
-food_img = pygame.image.load('player3.png').convert()
+food_img = pygame.image.load('mogwai .PNG').convert()
 food_x = random.randint(1, 800)
 food_Y = random.randint(1, 600)
 food_x_change = random.randint(1, 800)
@@ -36,12 +41,13 @@ def redimension(args):
     return image_redi
 
 
-def player() :
-    surface.blit(redimension(ship), (ship_x, ship_y))
+def player(x,y) :
+    surface.blit(redimension(ship), (x, y))
 
 
 def foody(x, y) :
     surface.blit(food_img, (x, y))
+
 
 
 ship_direction = None
@@ -86,31 +92,21 @@ while running :
 
     if ship_x < 0:
         ship_x = 0
-    elif ship_x > largeur:
-        ship_x = largeur
+    elif ship_x > max_x:
+        ship_x = max_x
     if ship_y < 0:
         ship_y = 0
-    elif ship_y > hauteur:
-        ship_y = hauteur
+    elif ship_y > max_y:
+        ship_y = max_y
 
+    surface.fill((0, 0, 0))
 
-
-        # if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_UP or event.key == pygame.K_DOWN :
-        #     ship_x_change = 0
-        #     ship_y_change = 0
-
-    # generate_startfield(surface,20)
-    # ship_x -= ship_x_change
-    #
-    # if ship_x <= 0:
-    #     ship_x = 0
-    # elif ship_x >=800:
-    #     ship_x = 800
-
-    player()
+    player(ship_x,ship_y)
     foody(food_x, food_Y)
 
     pygame.display.flip()
     pygame.display.update()
 
+info = pygame.display.get_wm_info()
+print(f'info: {info}')
 pygame.quit()
