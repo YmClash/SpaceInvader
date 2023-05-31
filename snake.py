@@ -25,8 +25,8 @@ max_y=545
 # food
 
 food_img = pygame.image.load('mogwai .PNG').convert()
-food_x = random.randint(1, 800)
-food_Y = random.randint(1, 600)
+food_x = random.randint(1, 750)
+food_Y = random.randint(1, 545)
 food_x_change = random.randint(1, 800)
 food_Y_change = random.randint(1, 600)
 
@@ -109,4 +109,6 @@ while running :
 
 info = pygame.display.get_wm_info()
 print(f'info: {info}')
+
+
 pygame.quit()

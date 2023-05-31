@@ -1,5 +1,5 @@
 import pygame
-
+import random
 # Initialisation de Pygame
 pygame.init()
 
@@ -17,8 +17,18 @@ taille_du_joueur = 20
 # Vitesse de déplacement du joueur
 vitesse = 1
 
+#food initiale
+food_x = random.randint(1, largeur -taille_du_joueur)
+food_y= random.randint(1, hauteur -taille_du_joueur)
+
+def food(x,y):
+    pass
+
+
+
 # Boucle principale du jeu
 running = True
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -54,12 +64,13 @@ while running:
 
     # Dessiner le joueur
     pygame.draw.rect(fenetre, (255, 0, 0), (joueur_x, joueur_y, 20, 20))
+    pygame.draw.rect(fenetre, (255, 0, 0), (food_x, food_y, 20, 20))
 
     # Mettre à jour l'affichage
     pygame.display.flip()
 
 
-info = pygame.display.gl_get_attribute()
+info = pygame.display.get_driver()
 print(f'info: {info}')
 
 
