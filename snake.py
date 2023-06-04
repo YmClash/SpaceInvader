@@ -12,7 +12,7 @@ surface = pygame.display.set_mode((hauteur, largeur))
 
 # le  joueur
 #la taille est 750X545
-ship = pygame.image.load('mogwai .PNG').convert()
+ship_img = pygame.image.load('mogwai .PNG').convert()
 ship_x =750 / 2
 ship_y = 545 / 2
 ship_x_change = 0
@@ -42,11 +42,11 @@ def redimension(args):
 
 
 def player(x,y) :
-    surface.blit(redimension(ship), (x, y))
+    surface.blit(redimension(ship_img), (x, y))
 
 
 def foody(x, y) :
-    surface.blit(food_img, (x, y))
+    surface.blit(redimension(food_img), (x, y))
 
 
 
