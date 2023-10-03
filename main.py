@@ -1,4 +1,3 @@
-
 import pygame
 import random
 from train import generate_startfield
@@ -8,7 +7,6 @@ from train import generate_startfield
 pygame.init()
 
 # Creation de la fenetre de jeu
-
 screen = pygame.display.set_mode((800, 600))
 
 # titre   et  Icon
@@ -17,30 +15,45 @@ icon = pygame.image.load('shuttle.png')
 pygame.display.set_icon(icon)
 
 # Creation   du  background
-
-background = pygame.image.load('background3.jpg')
-
+background = pygame.image.load('Background/background3.jpg')
 
 #  Creation  de  Joueur
-
 playerImg = pygame.image.load('ship.png')
 playerX = 370
 playerY = 550
 playerX_change = 0
 
+# creation du projectile
+bulletImg = pygame.image.load('Bubble_Explo/bubble_explo1.png')
+bullet_speed = 1
+bulletY_change = -bullet_speed
+bullets = []
 
-# Creation d'enemie
 
-enemyImg = pygame.image.load('alien.png')
-enemyX = random.randint(0, 800)
-enemyY = random.randint(50, 150)
-enemyX_change = 0.3
-enemyY_change = 20
+# Creation d'enemie pour  cela  on cree une liste d'enemie
+enemies = []
+for i in range(10):
+    enemyImg = pygame.image.load('alien.png')
+    enemyX = random.randint(0, 800)
+    enemyY = random.randint(50, 150)
+    enemyX_change = 0.3
+    enemyY_change = 20
 
+def player_shoot():
+    player_bulletX = playerX +20
+    player_bulletY = playerY
+    bullets.append([player_bulletX, player_bulletY])
+
+
+def check_collison():
+    for bullet in bullets:
+        for enemy in enemies:
+            if bullet.colliderect(enemy):
+                enemies.remove(enemy)
+                bullets.remove(bullet)
 
 # fonction  qui  affice   le  joueur a l'ecran
 def player(x, y):
-
     screen.blit(playerImg, (x, y))
 
  # Fonction qui affice les  Ememie  a   l'ecran
@@ -60,8 +73,6 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-
-
         # demande  quel touche est enfoncé  Droite / Gauche
         if event.type == pygame.KEYDOWN:
             print(" Bas enfoncé ")
@@ -76,9 +87,13 @@ while running:
                 playerX_change = 0
                 print(" la touche a ete relaché")
 
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            player_shoot()
+            print("shoot")
+
+        check_collison()
+
     generate_startfield(screen,200)
-
-
 
 
 # Controleur  de  Joeueur  Player control
