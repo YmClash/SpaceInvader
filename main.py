@@ -33,7 +33,7 @@ bullets = []
 # Creation d'enemie pour  cela  on cree une liste d'enemie
 enemies = []
 for i in range(10):
-    enemyImg = pygame.image.load('alien.png')
+    enemyImg = pygame.image.load('Astro Collection/Asteroid-A-09-000.png')
     enemyX = random.randint(0, 800)
     enemyY = random.randint(50, 150)
     enemyX_change = 0.3
@@ -46,11 +46,20 @@ def player_shoot():
 
 
 def check_collison():
+    global bullets
+    new_bullets = []
     for bullet in bullets:
+        bullet_rect = pygame.Rect(bullet[0],bullet[1],bulletImg.get_width(),bulletImg.get_height())
+        remove_bullet = False
         for enemy in enemies:
-            if bullet.colliderect(enemy):
+            enemy_rect = pygame.Rect(enemy[0],enemy[1],enemyImg.get_width(),enemyImg.get_height())
+            if bullet_rect.colliderect(enemy_rect):
                 enemies.remove(enemy)
-                bullets.remove(bullet)
+                remove_bullet = True
+                break
+            if not remove_bullet:
+                new_bullets.append(bullet)
+    bullets = new_bullets
 
 # fonction  qui  affice   le  joueur a l'ecran
 def player(x, y):
@@ -68,6 +77,7 @@ running = True
 while running:
     screen.fill((0, 0, 0))
     screen.blit(background,(0,0))
+    generate_startfield(screen, 200)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -91,9 +101,11 @@ while running:
             player_shoot()
             print("shoot")
 
-        check_collison()
+    for bullet in bullets:
+        bullet[1] += bulletY_change
+        screen.blit(bulletImg, (bullet[0], bullet[1]))
 
-    generate_startfield(screen,200)
+        check_collison()
 
 
 # Controleur  de  Joeueur  Player control
@@ -105,22 +117,30 @@ while running:
         playerX = 736
 
 # Mouvement  de l'enemie
+    for enemy in enemies:
+        enemy[0] += enemyX_change
+        if enemy[0] <= 0 or enemy[0] >= 736:
+            enemyX_change = -enemyX_change
+            enemy[1] += enemyX_change
+    for enemy in enemies:
+        screen.blit(enemyImg, (enemy[0], enemy[1]))
 
-    enemyX += enemyX_change
+    # enemyX += enemyX_change
 
-    if enemyX <= 0:
-        enemyX_change = 0.3
-        enemyY_change +=enemyY_change
-    elif enemyX >= 736:
-        enemyX_change = -0.3
-        enemyY += enemyY_change
+    # if enemyX <= 0:
+    #     enemyX_change = 0.3
+    #     enemyY_change +=enemyY_change
+    # elif enemyX >= 736:
+    #     enemyX_change = -0.3
+    #     enemyY += enemyY_change
 
 
 
 
     player(playerX,playerY)
     enemy(enemyX, enemyY)
-    pygame.display.flip()
+    check_collison()
+    player_shoot()
     pygame.display.update()
 
 
