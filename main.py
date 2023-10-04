@@ -38,6 +38,8 @@ for i in range(10):
     enemyY = random.randint(50, 150)
     enemyX_change = 0.3
     enemyY_change = 20
+    enemies.append([enemyX, enemyY, enemyX_change, enemyY_change])
+
 
 def player_shoot():
     player_bulletX = playerX +20
@@ -105,7 +107,7 @@ while running:
         bullet[1] += bulletY_change
         screen.blit(bulletImg, (bullet[0], bullet[1]))
 
-        check_collison()
+    check_collison()
 
 
 # Controleur  de  Joeueur  Player control
@@ -138,8 +140,6 @@ while running:
 
 
     player(playerX,playerY)
-    enemy(enemyX, enemyY)
-    check_collison()
     player_shoot()
     pygame.display.update()
 
