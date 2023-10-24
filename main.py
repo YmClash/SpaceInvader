@@ -8,6 +8,7 @@ pygame.init()
 
 # Creation de la fenetre de jeu
 screen = pygame.display.set_mode((800, 600))
+FPS = 60
 
 # titre   et  Icon
 pygame.display.set_caption("SpaceShuttle")
@@ -77,6 +78,8 @@ def enemy(x, y):
 
 running = True
 while running:
+
+    pygame.time.ti
     screen.fill((0, 0, 0))
     screen.blit(background,(0,0))
     generate_startfield(screen, 200)

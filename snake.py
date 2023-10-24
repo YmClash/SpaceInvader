@@ -9,6 +9,8 @@ hauteur = 800
 largeur = 600
 vitesse = 1
 surface = pygame.display.set_mode((hauteur, largeur))
+clock = pygame.time.Clock
+FPS = 60
 
 # le  joueur
 #la taille est 750X545
@@ -56,6 +58,8 @@ ship_direction = None
 running = True
 
 while running :
+
+
     surface.fill((23, 22, 22))
     # generate_startfield(surface, 2000)
 
@@ -106,6 +110,8 @@ while running :
 
     pygame.display.flip()
     pygame.display.update()
+
+    clock
 
 info = pygame.display.get_wm_info()
 print(f'info: {info}')

@@ -2,16 +2,16 @@
 # import pygame
 # from snake import redimension
 #
-def get_string_methods():
+def get_string_methods(method):
     i: int = 0
-    for method in dir(str):
+    for method in dir(method):
         if '__' not in method:
             # print(f"{i} : {method}")
             i += 1
             print(f"{i} : {method}")
 
 
-get_string_methods()
+get_string_methods(str)
 
 
 

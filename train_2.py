@@ -27,7 +27,7 @@ def generator_infini():
         i += 2
 
 
-generateur_nom(5)
+generateur_nom(10)
 #
 # for i in generator_infini():
 #     print(i)

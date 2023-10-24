@@ -6,8 +6,10 @@ pygame.init()
 longeur = 800
 largeur = 600
 
-screen = pygame.display.set_mode((longeur,largeur))
+FPS = 60
 
+screen = pygame.display.set_mode((longeur,largeur))
+clock = pygame.time.Clock
 def generate_startfield(screen, num_stars):
     for s in range(num_stars):
         print(s)
@@ -21,13 +23,11 @@ def generate_startfield(screen, num_stars):
               f" size: {size}"
               f" color: {color}")
 
-
-
-
-
-
 running = True
+
 while running:
+
+    clock = FPS
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
