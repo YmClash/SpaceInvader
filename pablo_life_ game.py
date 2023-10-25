@@ -39,7 +39,7 @@ def draw_grid(positions):
         pygame.draw.line(screen, BLACK, (col * TILE_SIZE, 0), (col * TILE_SIZE,HEIGHT))
 
 
-def ajust_grid(positions):
+def adjust_grid(positions):
     all_neighbors = set()
     new_positions = set()
 
@@ -98,6 +98,9 @@ def main():
 
         if count >= update_freq:
             count = 0
+            positions = adjust_grid(positions)
+
+        pygame.display.set_caption("Play" if playing else "pause")
 
 
 
@@ -122,6 +125,7 @@ def main():
                 if event.key == pygame.K_c:
                     positions = set()
                     playing = False
+                    count = 0
 
                 if event.key == pygame.K_g:
                     positions = gen(random.randrange(4,5) * GRID_WIDTH)
