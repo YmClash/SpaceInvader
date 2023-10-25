@@ -40,8 +40,31 @@ def draw_grid(positions):
 
 
 def ajust_grid(positions):
+    all_neighbors = set()
+    new_positions = set()
+
+    for position in positions:
+        neighbors = get_neighbors(position)
+        all_neighbors.update(neighbors)
+
+        neighbors = list(filter(lambda x: x in positions,neighbors))
+
+        if len(neighbors) in [2,3]:
+            new_positions.add(position)
+
+    for position in all_neighbors:
+        neighbors = get_neighbors(position)
+        neighbors=list(filter(lambda x: x in positions,neighbors))
+
+        if len(neighbors) == 3:
+            new_positions.add(position)
+
+    return new_positions
+
     pass
 
+def get_neighbors(pos):
+    pass
 
 
 def main():
