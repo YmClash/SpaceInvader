@@ -79,7 +79,7 @@ def enemy(x, y):
 running = True
 while running:
 
-    pygame.time.ti
+    pygame.time.get_ticks()
     screen.fill((0, 0, 0))
     screen.blit(background,(0,0))
     generate_startfield(screen, 200)
