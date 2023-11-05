@@ -11,7 +11,7 @@ TURQUOI = (116,214,190)
 
 
 WIDTH,HEIGHT = 500,500
-TILE_SIZE = 20
+TILE_SIZE = 100
 GRID_WIDTH = WIDTH // TILE_SIZE
 GRID_HEIGHT = HEIGHT // TILE_SIZE
 FPS = 60
@@ -106,6 +106,7 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                pygame.image.save(screen,"momo.png")
                 running = False
 
             if event.type == pygame.MOUSEBUTTONDOWN:
