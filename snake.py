@@ -18,7 +18,8 @@ ship_img = pygame.image.load('mogwai .PNG').convert()
 ship_x =750 / 2
 ship_y = 545 / 2
 ship_x_change = 0
-ship_y_change = 0
+ship_y_change =0
+
 joueur_largeur = 50
 joueur_hauteur = 50
 

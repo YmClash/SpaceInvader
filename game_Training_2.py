@@ -27,13 +27,14 @@ time = pygame.time.Clock
 FPS = 60
 
 # Create a dot  that represent the player
-player_1 = pygame.Vector2()
+player_1 = pygame.Vector2(screen.get_width() / 2,screen.get_height() / 2 )
 
-player_2 = pygame.Rect(10,400,50,50)
+player_2 = pygame.Rect(10,10,50,50)
 
-init = pygame.display.get_driver()
-print(int)
 
+speed = 5
+
+ship_direction = None
 
 running = True
 
@@ -44,8 +45,29 @@ while running:
             pygame.image.save(screen,"MOMO.png")
             running = False
 
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                ship_direction = "UP"
+            if event.key == pygame.K_DOWN:
+                ship_direction = "DOWM"
+            if event.key == pygame.K_LEFT:
+                ship_direction = "LEFT"
+            if event.key ==  pygame.K_RIGHT:
+                ship_direction = "RIGHT"
+
+    if player_1.x += 10 :
+
+
+
+
+
+
+        # if event in pygame.key.get_pressed():
+        #     if event.type. == pygame.L
+
 
     screen.fill(RANDOM_COLOR)
+    pygame.draw.circle(screen,GREEN,player_1,20)
     pygame.draw.rect(screen,RED,player_2)
 
     pygame.display.update()
