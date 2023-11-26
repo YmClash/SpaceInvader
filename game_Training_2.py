@@ -47,15 +47,15 @@ while running:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                ship_direction = "UP"
+                player_1.y -= 10
             if event.key == pygame.K_DOWN:
-                ship_direction = "DOWM"
+                player_1.y += 10
             if event.key == pygame.K_LEFT:
-                ship_direction = "LEFT"
+                player_1.x -= 10
             if event.key ==  pygame.K_RIGHT:
-                ship_direction = "RIGHT"
+                player_1.x += 10
 
-    if player_1.x += 10 :
+    # if player_1.x += 10 :
 
 
 
@@ -67,8 +67,9 @@ while running:
 
 
     screen.fill(RANDOM_COLOR)
-    pygame.draw.circle(screen,GREEN,player_1,20)
     pygame.draw.rect(screen,RED,player_2)
+    pygame.draw.circle(screen,GREEN,player_1,20)
+
 
     pygame.display.update()
 
