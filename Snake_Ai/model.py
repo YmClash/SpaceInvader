@@ -9,7 +9,7 @@ class QNET_Neuronal(nn.Module):
     def __init__(self,input_size,hidden_size,output_size):
         super().__init__()
         self.qnet1 = nn.Linear(input_size,hidden_size)
-        self.qnet2 = nn.linear(hidden_size,output_size)
+        self.qnet2 = nn.Linear(hidden_size,output_size)
 
 
     def forward(self,x):
@@ -39,8 +39,8 @@ class Qtrainer:
     def train_step(self,state,action,reward,next_state,done):
         state = torch.tensor(state,dtype=torch.float)
         next_state = torch.tensor(next_state,dtype=torch.float)
-        action = torch.unsqueeze(action,0)
-        reward = torch.unsqueeze(reward,0)
+        action = torch.tensor(action,dtype=torch.long)
+        reward = torch.tensor(reward,dtype=torch.float)
 
         if len(state.shape) == 1:
             state = torch.unsqueeze(state,0)

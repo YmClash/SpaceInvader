@@ -37,7 +37,7 @@ class SnakeGame:
         self.HEIGHT = HEIGHT
         self.screen = pygame.display.set_mode((self.WIDTH,self.HEIGHT))
         pygame.display.set_caption("SnakeAI by YmC")
-        self.clock = pygame.time.Clock
+        self.clock = pygame.time.Clock()
         self.reset()
 
         #init game state
