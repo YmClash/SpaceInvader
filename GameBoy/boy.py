@@ -50,9 +50,16 @@ map_layer.zoom = 2
 player_position = tmx_data.get_object_by_name('player')
 player = player.Player(player_position.x,player_position.y)
 
+ # defini  une  liste   pour les collision de  la map
+
+collisions = []
+
+for obj in tmx_data.objects:
+    if obj.type == 'collision':
+        collisions.append(pygame.Rect(obj.x,obj.y,obj.width,obj.height))
 
 # dessiner la carte
-group = pyscroll.PyscrollGroup(map_layer=map_layer,default_layer=3)
+group = pyscroll.PyscrollGroup(map_layer=map_layer,default_layer=9)
 group.add(player)
 
 
@@ -60,17 +67,28 @@ def handel_input():
     pressed = pygame.key.get_pressed()
     if pressed[pygame.K_UP]:
         player.move_up()
+        player.chang_animation('up')
         print("up")
     elif pressed[pygame.K_DOWN]:
         player.move_down()
+        player.chang_animation('down')
         print("down")
     elif pressed[pygame.K_LEFT]:
         player.move_left()
+        player.chang_animation('left')
         print("left")
     elif pressed[pygame.K_RIGHT]:
         player.move_right()
+        player.chang_animation('right')
         print("right")
 
+
+def update():
+    group.update()
+    # verification  de collision
+    for player in group.sprites():
+        if player.feet.collidelist(collisions) > -1:
+            player.move_back()
 
 
 
@@ -79,8 +97,10 @@ def handel_input():
 running = True
 
 while running:
+
+    player.save_location()
     handel_input()
-    group.update()
+    update()
     group.center(player.rect)
     group.draw(screen)
     pygame.display.flip()
