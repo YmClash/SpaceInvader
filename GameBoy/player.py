@@ -10,7 +10,13 @@ class Player(pygame.sprite.Sprite):
         self.image.set_colorkey([0,0,0])
         self.rect = self.image.get_rect()
         self.position = [x,y]
-        self.speed = 5
+        self.images = {
+            'down':self.get_image(0,0),
+            'left':self.get_image(0,32),
+            'right':self.get_image(0,64),
+            'up':self.get_image(0,96)
+        }
+        self.speed = 3
 
     def move_right(self):
         self.position[0] += self.speed
