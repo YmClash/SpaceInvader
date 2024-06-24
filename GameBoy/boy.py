@@ -20,6 +20,9 @@ class Game:
 WIDTH = 800
 HEIGHT = 800
 
+
+FPS = 60
+
 #COLORS
 
 WHITE = (255,255,255)
@@ -32,6 +35,7 @@ RANDOM_COLOR = (random.randint(0,255),random.randint(0,255),random.randint(0,255
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("GameBoy")
+clock = pygame.time.Clock()
 
 #charger la carte tiled
 
@@ -52,12 +56,30 @@ group = pyscroll.PyscrollGroup(map_layer=map_layer,default_layer=3)
 group.add(player)
 
 
+def handel_input():
+    pressed = pygame.key.get_pressed()
+    if pressed[pygame.K_UP]:
+        player.move_up()
+        print("up")
+    elif pressed[pygame.K_DOWN]:
+        player.move_down()
+        print("down")
+    elif pressed[pygame.K_LEFT]:
+        player.move_left()
+        print("left")
+    elif pressed[pygame.K_RIGHT]:
+        player.move_right()
+        print("right")
+
+
+
 
 
 
 running = True
 
 while running:
+    handel_input()
     group.update()
     group.center(player.rect)
     group.draw(screen)
@@ -66,6 +88,26 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+
+        #
+        # if event.type == pygame.KEYDOWN:
+        #     if event.key == pygame.K_UP:
+        #         print("up")
+        #         player.rect.x -= 10
+        #     elif event.key == pygame.K_DOWN:
+        #         print("down")
+        #         player.rect.y += 10
+        #     elif event.key == pygame.K_LEFT:
+        #         print("left")
+        #         player.rect.x = -10
+        #     elif event.key == pygame.K_RIGHT:
+        #         print("right")
+        #         player.rect.x +=10
+
+    clock.tick(FPS)
+
+
 
 
 

@@ -42,14 +42,18 @@ while running :
         if event.type ==pygame.QUIT:
             running = False
 
+
+
+
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_DOWN:
                 player.y += 10
-            if event.key == pygame.K_UP:
+            elif event.key == pygame.K_UP:
                 player.y -= 10
-            if event.key == pygame.K_LEFT:
+            elif event.key == pygame.K_LEFT:
                 player.x -= 10
-            if event.key == pygame.K_RIGHT:
+            elif event.key == pygame.K_RIGHT:
                 player.x += 10
 
 
