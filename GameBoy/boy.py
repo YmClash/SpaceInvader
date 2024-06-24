@@ -9,6 +9,7 @@ pygame.init()
 
 
 GEO = r'C:\Users\y_mc\PycharmProjects\SpaceInvader\GameBoy\carte\carte_1.tmx'
+HOUSE = r'C:\Users\y_mc\PycharmProjects\SpaceInvader\GameBoy\carte\house.tmx'
 class Game:
     def __init__(self):
         pass
@@ -63,6 +64,13 @@ group = pyscroll.PyscrollGroup(map_layer=map_layer,default_layer=9)
 group.add(player)
 
 
+# definir le rect
+#
+# enter_house = tmx_data.get_object_by_name('enter_house')
+# enter_house_rect = pygame.Rect(enter_house.x,enter_house.y)
+
+
+
 def handel_input():
     pressed = pygame.key.get_pressed()
     if pressed[pygame.K_UP]:
@@ -83,8 +91,20 @@ def handel_input():
         print("right")
 
 
+def swich_house(self):
+    # charger la carte de la maison
+    tmx_data = pytmx.util_pygame.load_pygame(HOUSE)
+    map_data = pyscroll.data.TiledMapData(tmx_data)
+    map_layer = pyscroll.orthographic.BufferedRenderer(map_data,screen.get_size())
+
+
+
+
 def update():
     group.update()
+    # verifier sie on es entre dans une maison
+
+
     # verification  de collision
     for player in group.sprites():
         if player.feet.collidelist(collisions) > -1:
