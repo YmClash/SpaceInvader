@@ -1,3 +1,95 @@
+import pygame
+import random
+import player
+
+import pyscroll
+import pytmx
+pygame.init()
+
+
+
+GEO = r'C:\Users\y_mc\PycharmProjects\SpaceInvader\GameBoy\carte\carte_1.tmx'
+class Game:
+    def __init__(self):
+        pass
+
+
+
+
+#fenetre
+WIDTH = 800
+HEIGHT = 800
+
+#COLORS
+
+WHITE = (255,255,255)
+BLACK = (0,0,0)
+RED = (255,0,0)
+GREEN = (0,255,0)
+BLUE = (0,0,255)
+RANDOM_COLOR = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
+
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("GameBoy")
+
+#charger la carte tiled
+
+tmx_data = pytmx.util_pygame.load_pygame(GEO)
+map_data = pyscroll.data.TiledMapData(tmx_data)
+map_layer = pyscroll.orthographic.BufferedRenderer(map_data,screen.get_size())
+map_layer.zoom = 2
+
+
+
+# genere joueur
+player_position = tmx_data.get_object_by_name('player')
+player = player.Player(player_position.x,player_position.y)
+
+
+# dessiner la carte
+group = pyscroll.PyscrollGroup(map_layer=map_layer,default_layer=3)
+group.add(player)
+
+
+
+
+
+running = True
+
+while running:
+    group.update()
+    group.center(player.rect)
+    group.draw(screen)
+    pygame.display.flip()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+
+
+pygame.quit()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
 import pyboy
 import random
 #
@@ -46,3 +138,5 @@ def perm(l):
 toto = perm("hallo")
 
 print(toto)
+
+"""
