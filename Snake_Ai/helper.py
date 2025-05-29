@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from IPython.display import display
+from IPython import display
 
 
 
