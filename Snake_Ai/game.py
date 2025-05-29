@@ -32,7 +32,7 @@ SPEED = 40
 
 class SnakeGame:
 
-    def __init__(self,WIDTH=650,HEIGHT =500):
+    def __init__(self,WIDTH=640,HEIGHT =480):
         self.WIDTH = WIDTH
         self.HEIGHT = HEIGHT
         self.screen = pygame.display.set_mode((self.WIDTH,self.HEIGHT))
@@ -91,6 +91,8 @@ class SnakeGame:
             self.place_food()
         else:
             self.snake.pop()
+
+        # reward = reward * self.score
 
         #5. update ui and clock
         self.update_ui()
