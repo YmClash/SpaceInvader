@@ -14,7 +14,7 @@ import os
 
 
 # Augmenter la taille de la mémoire et du batch
-MAX_MEMORY = 500000  # 5x plus grand
+MAX_MEMORY = 100000  # 5x plus grand
 BATCH_SIZE = 4096    # 4x plus grand pour un meilleur apprentissage
 
 # Ajuster aussi le learning rate pour la stabilité
@@ -32,13 +32,14 @@ class Agent :
         self.memory = deque(maxlen=MAX_MEMORY)  # popleft()
         # self.model = Linear_QNet(12, 512, 3)
         self.model = Linear_QNet(
-            input_size=12,
-            hidden_size1=1024,
-            hidden_size2=2048,
-            hidden_size3=1024,
+            input_size=11,
+            hidden_size1=256,
+            hidden_size2=512,
+            hidden_size3=256,
             output_size=3
         )
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        self.model = self.model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
     def get_state(self, game) :
         head = game.snake[0]
@@ -55,6 +56,10 @@ class Agent :
         # Calculer la distance Manhattan à la nourriture
         food_distance = abs(game.food.x - game.head.x) + abs(game.food.y - game.head.y)
         normalized_distance = food_distance / (game.w * 2)  # Normaliser entre 0 et 1
+
+        #longuet du snake
+        snake_length = len(game.snake)
+
 
 
         state = [
@@ -89,7 +94,8 @@ class Agent :
             game.food.y > game.head.y, # food down
 
             # food distance
-            normalized_distance
+            # normalized_distance,
+            # snake_length
 
             # normalized_distance
 
@@ -138,6 +144,9 @@ class Agent :
             final_move[move] = 1
         else :
             state0 = torch.tensor(state, dtype=torch.float)
+            if torch.cuda.is_available():
+                state0 = state0.cuda()
+
             prediction = self.model(state0)
             # Ajouter du bruit pour l'exploration
             if random.random() < 0.1 :
@@ -204,6 +213,10 @@ class Agent :
         print("\n=== Détails de la Mémoire ===")
         print(f"Taille actuelle de la mémoire: {len(self.memory)}")
         print(f"Taille maximale de la mémoire: {self.memory.maxlen}")
+        if torch.cuda.is_available():
+            print("Le modèle est exécuté sur GPU.")
+        else:
+            print("Le modèle est exécuté sur CPU.")
 
 
 def train(max_games,checkpoint_interval,save_dir) :

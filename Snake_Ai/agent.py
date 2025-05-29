@@ -6,7 +6,7 @@ from game import SnakeGame, Direction, Point
 from model import QNET_Neuronal, Qtrainer
 from helper import plot
 
-MAX_MEMORY = 100_000
+MAX_MEMORY = 1_000_000  # default : 100_000
 BATCH_SIZE = 1000
 LR = 0.001
 
@@ -18,8 +18,11 @@ class Agent:
         self.epsilon = 0
         self.gamma = 0.9
         self.memory = deque(maxlen=MAX_MEMORY)
-        self.model = QNET_Neuronal(11, 256, 3)
+        self.model = QNET_Neuronal(11, 1024, 3)
         self.trainer = Qtrainer(self.model, lr=LR, gamma=self.gamma)
+
+        self.model = self.model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+
 
     def get_state(self, game):
         head = game.snake[0]
@@ -32,6 +35,8 @@ class Agent:
         dir_r = game.direction == Direction.RIGHT
         dir_u = game.direction == Direction.UP
         dir_d = game.direction == Direction.DOWN
+
+        snake_length = len(game.snake)
 
         state = [
             # danger straight
@@ -62,8 +67,13 @@ class Agent:
             game.food.x < game.head.x,  # food left
             game.food.x > game.head.x,  # food right
             game.food.y < game.head.y,  # food up
-            game.food.y > game.head.y  # food down
+            game.food.y > game.head.y,  # food down
+
+            # snake_length
+
+
             ]
+
         return np.array(state, dtype=int)
 
     def remember(self, state, action, reward, next_state, done):
@@ -91,6 +101,9 @@ class Agent:
             final_move[move] = 1
         else:
             state0 = torch.tensor(state, dtype=torch.float)
+            if torch.cuda.is_available():
+                state0 = state0.cuda()
+
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
@@ -104,6 +117,7 @@ class Agent:
         record = 0
         agent = Agent()
         game = SnakeGame()
+        agent.print_model_info()
         while True:
             # get old state
             old_state = agent.get_state(game)
@@ -116,10 +130,12 @@ class Agent:
             new_state = agent.get_state(game)
 
             # train short memory
-            self.train_short_memory(old_state, final_move, reward, new_state, done)
+            # self.train_short_memory(old_state, final_move, reward, new_state, done)
+            agent.train_short_memory(old_state, final_move, reward, new_state, done)
 
             # remember
-            self.remember(old_state, final_move, reward, new_state, done)
+            # self.remember(old_state, final_move, reward, new_state, done)
+            agent.remember(old_state, final_move, reward, new_state, done)
 
             if done:
                 # train long memory, plot result
@@ -140,8 +156,83 @@ class Agent:
                 plot(plot_scores, plot_mean_scores)
 
 
+    def count_network_parameters(self) :
+        # On utilise self.model au lieu de model
+        total_params = sum(p.numel() for p in self.model.parameters())
+        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        return total_params, trainable_params
+
+    def print_model_info(self):
+        total_params, trainable_params = self.count_network_parameters()
+        print(f"Total parameters: {total_params}, Trainable parameters: {trainable_params}")
+        print(self.model)
+
+        # Récupérer la structure du modèle
+        input_size = self.model.qnet1.in_features
+        hidden_size = self.model.qnet1.out_features
+        output_size = self.model.qnet2.out_features
+
+        # Total le nombre de Neurones
+        total_neurons = input_size + hidden_size + output_size
+
+        # Calculer les combre de connexion
+        connections_layer1 = input_size * hidden_size
+        connections_layer2 = hidden_size * output_size
+        total_connections = connections_layer1 + connections_layer2
+
+        print("\n=== Architecture du Réseau ===")
+        print(f"Input Layer: {input_size} Neurons")
+        print(f"Hidden Layer: {hidden_size} Neurons")
+        print(f"Output Layer: {output_size} Neurons")
+        print(f"Total Neurons: {total_neurons}")
+
+        print("\n=== Connexions ===")
+        print(f"Connexions input->hidden1: {connections_layer1:,}")
+        print(f"Connexions hidden1->output: {connections_layer2:,}")
+        print(f"Total Connections: {total_connections:,}")
+
+        print("\n=== Configuration du Modèle ===")
+        print(f'Architecture: {input_size} -> {hidden_size} -> {output_size}')
+        print(f"Paramètres totaux: {total_params:,}")
+        print(f"Paramètres entrainables: {trainable_params:,}")
+
+        print("\n=== Hyperparamètres ===")
+        print(f"Learning Rate: {self.trainer.lr}")
+        print(f"Gamma (discount): {self.gamma}")
+        print(f"Batch Size: {BATCH_SIZE}")
+        print(f"Memory Size: {MAX_MEMORY}")
+        print(f"Epsilon initial: {self.epsilon}")
+
+        print("\n=== Détails de la Mémoire ===")
+        print(f"Taille actuelle de la mémoire: {len(self.memory)}")
+        print(f"Taille maximale de la mémoire: {self.memory.maxlen}")
+        if torch.cuda.is_available():
+            print("Le modèle est exécuté sur GPU.")
+        else:
+            print("Le modèle est exécuté sur CPU.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
+    if torch.cuda.is_available():
+        print("CUDA is available. Training on GPU.")
+    else:
+        print("CUDA is not available. Training on CPU.")
+
+
     agent = Agent()
     agent.train()
 
