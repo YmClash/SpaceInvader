@@ -19,6 +19,7 @@ class Jeu:
             resultat = self._deplace(ligne, colonne)
             if not resultat:
                 self.piece_selectionnee = None
+                self.selectionner(ligne, colonne)
 
         piece = self.plateau.get_piece(ligne, colonne)
         if piece and piece.couleur == self.tour:
