@@ -21,6 +21,7 @@ def damier() :
 
 
 def place_pions() :
+    print("Placement des pions sur le damier")
     for i, j in pions_b :
         can1.create_oval(j * case + 5, i * case + 5, (j + 1) * case - 5, (i + 1) * case - 5, fill='red')
         print("Pion rouge placé à :", (i, j))
