@@ -4,9 +4,10 @@ from pieces import Piece
 
 
 class Plateau:
-    def __init__(self):
+    def __init__(self,mode_jeu='1V1'):
         self.plateau = []
         self.piece_selectionnee = None
+        # self.mode_jeu = mode_jeu
         self.initialiser_plateau()
 
     def initialiser_plateau(self):
@@ -19,10 +20,10 @@ class Plateau:
                 if ligne < 3 and (ligne + colonne) % 2 == 1:
                     self.plateau[ligne][colonne] = Piece(ligne, colonne, NOIR)
                 elif ligne > 4 and (ligne + colonne) % 2 == 1:
-                    # if mode_jeu == "1v1":
-                    #     self.plateau[ligne][colonne] = Piece(ligne, colonne, RANDOM_COLORS_1)
-                    self.plateau[ligne][colonne] = Piece(ligne, colonne,  BLANC)
-                    # self.plateau[ligne][colonne] = Piece(ligne, colonne, RANDOM_COLORS_1)
+                    self.plateau[ligne][colonne] = Piece(ligne, colonne, BLANC)
+                    # couleur = RANDOM_COLORS_1 if self.mode_jeu == '1VCPU' else BLANC
+                    # self.plateau[ligne][colonne] = Piece(ligne, colonne, couleur)
+
 
     def dessiner(self, fenetre):
         self.dessiner_cases(fenetre)
@@ -55,7 +56,7 @@ class Plateau:
         piece.colonne = colonne
         piece.calculer_position()
 
-        if ligne == 0 and piece.couleur == BLANC:
+        if ligne == 0 and piece.couleur == BLANC :
             piece.faire_dame()
         elif ligne == 7 and piece.couleur == NOIR:
             piece.faire_dame()
