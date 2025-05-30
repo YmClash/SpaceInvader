@@ -8,7 +8,7 @@ joueur_actuel = 'rouge'  # Alternance entre 'rouge' et 'bleu'
 case = 40  # Taille d'une case du damier
 
 fenetre = Tk()
-fenetre.title("Jeu de Dames")
+fenetre.title("Jeu de Dames by YmC")
 can1 = Canvas(fenetre, width=case * 10, height=case * 10, bg='dark grey')
 can1.pack(side="top")
 
@@ -21,10 +21,13 @@ def damier() :
 
 
 def place_pions() :
+    print("Placement des pions sur le damier")
     for i, j in pions_b :
         can1.create_oval(j * case + 5, i * case + 5, (j + 1) * case - 5, (i + 1) * case - 5, fill='red')
+        print("Pion rouge placé à :", (i, j))
     for i, j in pions_n :
         can1.create_oval(j * case + 5, i * case + 5, (j + 1) * case - 5, (i + 1) * case - 5, fill='blue')
+        print("Pion bleu placé à :", (i, j))
 
 
 def select(event) :
@@ -39,6 +42,7 @@ def select(event) :
     if selected and is_pion_joueur :
         # Si un pion était déjà sélectionné et l'utilisateur clique sur un autre pion du même joueur
         selected = pos  # Change la sélection
+        print("Selection changé à :", selected)
     elif selected :
         # Tente de déplacer le pion sélectionné
         effectuer_deplacement(selected, pos)

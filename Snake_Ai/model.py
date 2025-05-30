@@ -42,6 +42,13 @@ class Qtrainer:
         action = torch.tensor(action,dtype=torch.long)
         reward = torch.tensor(reward,dtype=torch.float)
 
+        if torch.cuda.is_available():
+            state = state.cuda()
+            next_state = next_state.cuda()
+            action = action.cuda()
+            reward = reward.cuda()
+
+
         if len(state.shape) == 1:
             state = torch.unsqueeze(state,0)
             next_state = torch.unsqueeze(next_state,0)
@@ -52,7 +59,7 @@ class Qtrainer:
             #### 1  prediction  de la valuer Q
 
         predic = self.model(state)
-        target = predic.clone
+        target = predic.clone()
         for idx in range(len(done)):
             Q_new = reward[idx]
             if not done[idx]:
