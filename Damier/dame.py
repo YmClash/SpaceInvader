@@ -5,6 +5,9 @@ from ia import IA
 import time
 
 
+count_noir= 0
+count_blanc = 0
+
 class Jeu:
     def __init__(self,mode_jeu='1V1'):
         self.plateau = Plateau()
@@ -12,7 +15,8 @@ class Jeu:
         self.piece_selectionnee = None
         self.mouvements_valides = []
         self.mode_jeu = mode_jeu
-        self.ia = IA(self,BLANC) if mode_jeu == '1VCPU' else None
+        # self.ia = IA(self,RANDOM_COLORS_1) if mode_jeu == '1VCPU' else None
+        self.ia = IA(self, BLANC) if mode_jeu == '1VCPU' else None
         self.dernier_mouvement = time.time()
 
 
@@ -105,11 +109,16 @@ class Jeu:
         return False
 
     def changer_tour(self):
+        global count_noir, count_blanc
         if self.tour == NOIR:
-            self.tour = BLANC
-            print("Tour des Blancs")
+            self.tour = BLANC or RANDOM_COLORS_1
+            count_blanc += 1
+            print(f"Nombre de tours des Blancs : {count_blanc}")
+            print("Tour des Blancs :")
             # self.tour = RANDOM_COLORS_1 if self.mode_jeu == '1VCPU' else BLANC
             self.dernier_mouvement = time.time()
         else:
             self.tour = NOIR
+            count_noir += 1
+            print(f"Nombre de tours des Noirs : {count_noir}")
             print("Tour des Noirs")
