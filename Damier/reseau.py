@@ -62,7 +62,14 @@ class ReseauJeu:
                 self.adversaire, addr = self.socket.accept()
                 self.adversaire.settimeout(1.0)  # Timeout pour éviter de bloquer indéfiniment            self.est_connecter = True
                 print(f"Connexion acceptée de {addr}.")
-                self._demmarrer_thread()
+                try:
+                    self._demarrer_threads()
+                    print("Threads démarrés avec succès")
+                except Exception as e:
+                    print(f"Erreur lors du démarrage des threads: {e}")
+                    self.est_connecte = False
+                    self.adversaire.close()
+                    return False
                 return True
             except socket.timeout:
                 # print("Aucune connexion acceptée dans le délai imparti.")
