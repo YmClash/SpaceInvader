@@ -5,6 +5,7 @@ from reseau import ReseauJeu
 import tkinter as tk
 from tkinter import simpledialog
 import socket
+import time
 
 
 
@@ -22,6 +23,13 @@ def afficher_ip():
     return ip
 
 
+def obtenir_ip_locale():
+    try:
+        hostname = socket.gethostname()
+        ip = socket.gethostbyname(hostname)
+        return ip
+    except:
+        return "Impossible d'obtenir l'IP"
 
 
 def demander_ip():
@@ -40,13 +48,45 @@ def obtenir_position_souris():
     return ligne, colonne
 
 
-def dessiner_message_attente():
+def afficher_message_attente(message, sous_message=""):
     FENETRE.fill(BEIGE)
-    police = pygame.font.Font(None, 50)
-    message = police.render(MESSAGE_ATTENTE, True, NOIR)
-    message_rect = message.get_rect(center=(TAILLE_FENETRE // 2, TAILLE_FENETRE // 2))
-    FENETRE.blit(message, message_rect)
+    police_principale = pygame.font.Font(None, 48)
+    police_secondaire = pygame.font.Font(None, 36)
+
+    # Message principal
+    texte = police_principale.render(message, True, NOIR)
+    texte_rect = texte.get_rect(center=(TAILLE_FENETRE // 2, TAILLE_FENETRE // 2))
+    FENETRE.blit(texte, texte_rect)
+
+    # Sous-message
+    if sous_message:
+        sous_texte = police_secondaire.render(sous_message, True, BLEU)
+        sous_texte_rect = sous_texte.get_rect(center=(TAILLE_FENETRE // 2, TAILLE_FENETRE // 2 + 50))
+        FENETRE.blit(sous_texte, sous_texte_rect)
+
     pygame.display.update()
+
+
+def attendre_connexion_serveur(reseau):
+    temps_debut = time.time()
+    ip_locale = obtenir_ip_locale()
+
+    while time.time() - temps_debut < DELAI_ATTENTE_CONNEXION:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return None
+
+        afficher_message_attente(MESSAGE_SERVEUR_PRET, MESSAGE_IP_SERVEUR.format(ip_locale))
+
+        if reseau.accepter_connexion():
+            afficher_message_attente(MESSAGE_CONNEXION_REUSSIE)
+            time.sleep(DELAI_AFFICHAGE_MESSAGE)
+            return MODE_HOTE
+
+        time.sleep(0.1)
+
+    return None
 
 
 
@@ -93,7 +133,6 @@ def dessiner_menu():
 
 def main():
     # Menu principal
-    # bouton_1v1_rect, bouton_1vcpu_rect ,bouton_cpuvcpu_rect = dessiner_menu()
     bouton = dessiner_menu()
     bouton_1v1_rect, bouton_1vcpu_rect, bouton_cpuvcpu_rect, bouton_heberger_rect, bouton_rejoindre_rect = bouton
     mode_jeu = None
@@ -123,49 +162,86 @@ def main():
                     # ip = demander_ip()
                     reseau = ReseauJeu()
                     if reseau.creer_serveur():
-                        mode_jeu = 'MODE_HOTE'
-                        dessiner_message_attente()
-                        reseau.accepter_connexion()
+                        # mode_jeu = 'MODE_HOTE'
+                        # dessiner_message_attente()
+                        # reseau.accepter_connexion()
+                        mode_jeu = attendre_connexion_serveur(reseau)
+                        if mode_jeu is None:
+                            afficher_message_attente("Délai de connexion dépassé")
+                            time.sleep(DELAI_AFFICHAGE_MESSAGE)
+                            reseau.fermer()
+                            reseau = None
+                            return main()  # Retour au menu principal
+
                 elif bouton_rejoindre_rect.collidepoint(x, y):
                     mode_jeu = 'REJOINDRE'
                     mode.append('REJOINDRE')
                     ip = demander_ip()
                     if ip:
                         reseau = ReseauJeu()
+                        afficher_message_attente("Tentative de connexion...")
                         if reseau.connecter_client(ip):
+                            afficher_message_attente(MESSAGE_CONNEXION_REUSSIE)
+                            time.sleep(DELAI_AFFICHAGE_MESSAGE)
                             mode_jeu = 'MODE_CLIENT'
 
 
 
     # Démarrage du jeu
-    jeu = Jeu(mode_jeu, reseau)
-    running = True
-    print("Mode de jeu sélectionné :", mode_jeu)
 
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                if reseau:
-                    reseau.fermer()
+    if mode_jeu:
+        # Démarrage du jeu
+        jeu = Jeu(mode_jeu, reseau)
+        running = True
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if mode_jeu in ['1V1', MODE_HOTE, MODE_CLIENT]:
-                    if (mode_jeu == '1V1') or \
-                            (mode_jeu == MODE_HOTE and jeu.tour == NOIR) or \
-                            (mode_jeu == MODE_CLIENT and jeu.tour == BLANC):
+        while running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    if reseau:
+                        reseau.fermer()
+
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if mode_jeu in ['1V1', MODE_HOTE, MODE_CLIENT]:
+                        if (mode_jeu == '1V1') or \
+                                (mode_jeu == MODE_HOTE and jeu.tour == NOIR) or \
+                                (mode_jeu == MODE_CLIENT and jeu.tour == BLANC):
+                            ligne, colonne = obtenir_position_souris()
+                            jeu.selectionner(ligne, colonne)
+                    elif mode_jeu == '1VCPU' and jeu.tour == NOIR:
                         ligne, colonne = obtenir_position_souris()
                         jeu.selectionner(ligne, colonne)
-                elif mode_jeu == '1VCPU' and jeu.tour == NOIR:
-                    ligne, colonne = obtenir_position_souris()
-                    jeu.selectionner(ligne, colonne)
 
-        jeu.actualiser(FENETRE)
+            jeu.actualiser(FENETRE)
 
-    pygame.quit()
+        pygame.quit()
 
-
-
+    # jeu = Jeu(mode_jeu, reseau)
+    # running = True
+    # print("Mode de jeu sélectionné :", mode_jeu)
+    #
+    # while running:
+    #     for event in pygame.event.get():
+    #         if event.type == pygame.QUIT:
+    #             running = False
+    #             if reseau:
+    #                 reseau.fermer()
+    #
+    #         if event.type == pygame.MOUSEBUTTONDOWN:
+    #             if mode_jeu in ['1V1', MODE_HOTE, MODE_CLIENT]:
+    #                 if (mode_jeu == '1V1') or \
+    #                         (mode_jeu == MODE_HOTE and jeu.tour == NOIR) or \
+    #                         (mode_jeu == MODE_CLIENT and jeu.tour == BLANC):
+    #                     ligne, colonne = obtenir_position_souris()
+    #                     jeu.selectionner(ligne, colonne)
+    #             elif mode_jeu == '1VCPU' and jeu.tour == NOIR:
+    #                 ligne, colonne = obtenir_position_souris()
+    #                 jeu.selectionner(ligne, colonne)
+    #
+    #     jeu.actualiser(FENETRE)
+    #
+    # pygame.quit()
+    #
 
 def print_game_info():
 
