@@ -3,6 +3,7 @@ import pickle
 import threading
 import time
 import queue
+import json
 
 
 
@@ -23,6 +24,8 @@ class ReseauJeu:
         self.delai_timeout = 10.0  # Délai de timeout pour la connexion
         self.derniere_verification_ping = time.time()
         self.intervalle_ping = 2.0  # Envoyer un ping toutes les 2 secondes
+        self.messages_recus = []
+        self.message_lock = threading.Lock()
 
 
     def creer_serveur(self):
@@ -59,7 +62,7 @@ class ReseauJeu:
                 self.adversaire, addr = self.socket.accept()
                 self.adversaire.settimeout(1.0)  # Timeout pour éviter de bloquer indéfiniment            self.est_connecter = True
                 print(f"Connexion acceptée de {addr}.")
-                self._demmarrer_thread_reception()
+                self._demmarrer_thread()
                 return True
             except socket.timeout:
                 # print("Aucune connexion acceptée dans le délai imparti.")
@@ -77,11 +80,50 @@ class ReseauJeu:
             except:
                 pass
 
+    def verifier_connection(self):
+        if not self.est_connecter:
+            return False
 
-    def _demmarrer_thread_reception(self):
+        maintenant = time.time()
+
+        # Envoyer un ping régulièrement
+        if maintenant - self.derniere_verification_ping >= self.intervalle_ping:
+            self.envoyer_ping()
+            self.derniere_verification_ping = maintenant
+
+        # Vérifier le timeout
+        if maintenant - self.dernier_ping > self.delai_timeout:
+            print("Timeout - Aucune réponse du pair")
+            self.deconnecter()
+            return False
+
+        return True
+
+    def envoyer_ping(self):
+        try:
+            self.envoyer_donnees({'type': 'ping'})
+        except:
+            print("Erreur envoi ping")
+
+    def recevoir_ping(self):
+        self.dernier_ping = time.time()
+        try:
+            self.envoyer_donnees({'type': 'pong'})
+        except:
+            print("Erreur envoi pong")
+
+    def recevoir_pong(self):
+        self.dernier_ping = time.time()
+
+
+    def _demarrer_thread(self):
         self.thread_reception = threading.Thread(target=self._thread_reception)
         self.thread_reception.daemon = True
         self.thread_reception.start()
+
+        self.thread_ping = threading.Thread(target=self._thread_ping)
+        self.thread_ping.daemon = True
+        self.thread_ping.start()
 
     def _envoyer_ping(self):
         try:
@@ -95,7 +137,7 @@ class ReseauJeu:
 
     def _verifier_connexion(self):
         if time.time() - self.dernier_ping > self.delai_timeout:
-            print("Timeout de connexion detectö")
+            print(f"Timeout de connexion détecté - Dernier ping il y a {time.time() - self.dernier_ping} secondes")
             self.est_connecter = False
             return False
         return True
@@ -171,6 +213,39 @@ class ReseauJeu:
             self.est_connecter = False
             return False
 
+    def recevoir_donnees_thread(self):
+        while self.est_connecter:
+            try:
+                donnees = self.socket.recv(4096)
+                if not donnees:
+                    print("Connexion perdue - aucune donnée reçue")
+                    self.deconnecter()
+                    break
+
+                message = json.loads(donnees.decode())
+
+                # Traiter les messages de ping/pong
+                if message.get('type') == 'ping':
+                    self.recevoir_ping()
+                    continue
+                elif message.get('type') == 'pong':
+                    self.recevoir_pong()
+                    continue
+
+                # Traiter les autres types de messages
+                with self.message_lock:
+                    self.messages_recus.append(message)
+
+            except socket.timeout:
+                continue
+            except json.JSONDecodeError:
+                print("Erreur décodage JSON")
+                continue
+            except Exception as e:
+                print(f"Erreur réception : {e}")
+                self.deconnecter()
+                break
+
     def recevoir_donnees(self):
         print("Reception des données...")
         try:
@@ -178,11 +253,16 @@ class ReseauJeu:
         except queue.Empty:
             return None
 
-
     def fermer(self):
+        print("Fermeture de la connexion")
         self.running = False
+        self.est_connecte = False
+
         if self.thread_reception:
-            self.thread_reception.join(timeout=1)
+            self.thread_reception.join(timeout=1.0)
+        if self.thread_ping:
+            self.thread_ping.join(timeout=1.0)
+
         if self.est_serveur and self.adversaire:
             try:
                 self.adversaire.close()
@@ -192,7 +272,9 @@ class ReseauJeu:
             self.socket.close()
         except:
             pass
-        self.est_serveur = False
+
+    def deconnecter(self):
+        pass
 
 
 
