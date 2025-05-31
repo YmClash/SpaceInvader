@@ -20,7 +20,9 @@ class ReseauJeu:
         # self.running = False
         self.running = True
         self.dernier_ping =  time.time()
-        self.delai_timeout = 5.0  # Délai de timeout pour la connexion
+        self.delai_timeout = 10.0  # Délai de timeout pour la connexion
+        self.derniere_verification_ping = time.time()
+        self.intervalle_ping = 2.0  # Envoyer un ping toutes les 2 secondes
 
 
     def creer_serveur(self):
@@ -42,6 +44,7 @@ class ReseauJeu:
             self.socket.settimeout(5.0)  # Timeout pour éviter de bloquer indéfiniment
             self.socket.connect((ip,self.port))
             self.est_connecter = True
+            self.dernier_ping = time.time()  # Réinitialiser le dernier ping
             print("Client Connecté au serveur reussi.")
             self._demmarrer_thread_reception()
             return True
@@ -65,6 +68,14 @@ class ReseauJeu:
                 print(f"Erreur lors de l'acceptation de la connexion: {e}")
                 return False
         return False
+
+    def _thread_ping(self):
+        while self.running and self.est_connecter:
+            try:
+                self._envoyer_ping()
+                time.sleep(2.0)  # Envoi d'un ping toutes les 2 secondes
+            except:
+                pass
 
 
     def _demmarrer_thread_reception(self):
