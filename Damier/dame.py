@@ -50,23 +50,31 @@ class Jeu:
     def actualiser(self, fenetre):
         # Gestion du réseau
         if self.reseau and self.reseau.est_connecter:
-            try:
-                if ((self.mode_jeu == MODE_HOTE and self.tour == BLANC) or
-                        (self.mode_jeu == MODE_CLIENT and self.tour == NOIR)):
-                    donnees = self.reseau.recevoir_donnees()
-                    if donnees:
-                        self._appliquer_mouvement_reseau(donnees)
-            except:
+            donnees = self.reseau.recevoir_donnees()
+            if donnees:
+                self._appliquer_mouvement_reseau(donnees)
+            elif not self.reseau.est_connecter:
                 self.erreur_reseau = True
                 self.partie_terminee = True
                 self.message_fin = MESSAGE_CONNEXION_PERDUE
+            # try:
+            #     if ((self.mode_jeu == MODE_HOTE and self.tour == BLANC) or
+            #             (self.mode_jeu == MODE_CLIENT and self.tour == NOIR)):
+            #         donnees = self.reseau.recevoir_donnees()
+            #         if donnees:
+            #             self._appliquer_mouvement_reseau(donnees)
+            # except:
+            #     self.erreur_reseau = True
+            #     self.partie_terminee = True
+            #     self.message_fin = MESSAGE_CONNEXION_PERDUE
+
 
         # self.temps_partie = int(time.time() - self.temps_debut)
         self.plateau.dessiner(fenetre)
         self.dessiner_mouvements_valides(fenetre)
         self.dessiner_interface(fenetre)
 
-        pygame.display.update()
+        # pygame.display.update()
 
         # Mise à jour du chronomètre
         if not self.partie_terminee:
@@ -88,7 +96,7 @@ class Jeu:
         # Vérification de fin de partie
         self.verifier_fin_partie()
 
-        # pygame.display.update()
+        pygame.display.update()
 
     def dessiner_interface(self, fenetre):
         # Afficher les scores
