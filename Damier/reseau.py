@@ -17,7 +17,10 @@ class ReseauJeu:
 
         self.donnees_recues = queue.Queue()
         self.thread_reception = None
-        self.running = False
+        # self.running = False
+        self.running = True
+        self.dernier_ping =  time.time()
+        self.delai_timeout = 5.0  # Délai de timeout pour la connexion
 
 
     def creer_serveur(self):
@@ -41,6 +44,7 @@ class ReseauJeu:
             self.est_connecter = True
             print("Client Connecté au serveur reussi.")
             self._demmarrer_thread_reception()
+            return True
         except Exception as e:
             print(f'Erreur lors de la connexion au serveur: {e}')
             return False
@@ -55,7 +59,7 @@ class ReseauJeu:
                 self._demmarrer_thread_reception()
                 return True
             except socket.timeout:
-                print("Aucune connexion acceptée dans le délai imparti.")
+                # print("Aucune connexion acceptée dans le délai imparti.")
                 return False
             except Exception as e:
                 print(f"Erreur lors de l'acceptation de la connexion: {e}")
@@ -68,14 +72,56 @@ class ReseauJeu:
         self.thread_reception.daemon = True
         self.thread_reception.start()
 
+    def _envoyer_ping(self):
+        try:
+            if self.est_serveur and self.adversaire:
+                self.adversaire.send(b'ping')
+            elif not self.est_serveur:
+                self.socket.send(b'ping')
+            return True
+        except:
+            return False
+
+    def _verifier_connexion(self):
+        if time.time() - self.dernier_ping > self.delai_timeout:
+            print("Timeout de connexion detectö")
+            self.est_connecter = False
+            return False
+        return True
+
     def _thread_reception(self):
         while self.running and self.est_connecter:
             try:
-                donnees = self.recevoir()
-                if donnees:
-                    self.donnees_recues.put(donnees)
+                # donnees = self._recevoir()
+                # if donnees:
+                #     self.donnees_recues.put(donnees)
+                if self.est_serveur and self.adversaire:
+                    socket_actif = self.adversaire
+                else:
+                    socket_actif = self.socket
+
+                socket_actif.settimeout(1.0)
+                try:
+                    donnees = socket_actif.recv(4096)
+                    if not donnees:
+                        raise ConnectionError("Connexion perdue")
+
+                    if donnees == b'ping':
+                        self.dernier_ping = time.time()
+                        if self._envoyer_ping():  # Répondre au ping
+                            continue
+                    else:
+                        self.donnees_recues.put(pickle.loads(donnees))
+                except socket.timeout:
+                    # Envoyer un ping périodique
+                    if not self._envoyer_ping():
+                        raise ConnectionError("Échec d'envoi du ping")
+
+                if not self._verifier_connexion():
+                    break
             except Exception as e:
-                print(f"Erreur dans le thread de réception: {e}")
+                # print(f"Erreur dans le thread de réception: {e}")
+                print(f'Erreur Thread de réception: {e}')
                 self.est_connecter = False
                 break
             time.sleep(0.01)
@@ -100,6 +146,9 @@ class ReseauJeu:
     def envoyer_donnees(self, donnees):
         print("Envoi des données...")
         try:
+            if not self.est_connecter:
+                print("Erreur: Pas de connexion établie.")
+                return False
             data = pickle.dumps(donnees)
             if self.est_serveur and self.adversaire:
                 self.adversaire.send(data)
