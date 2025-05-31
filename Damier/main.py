@@ -24,7 +24,7 @@ def dessiner_menu():
     police = pygame.font.Font(None, 74)
 
     # Titre
-    titre = police.render("Jeu de Dames", True, NOIR)
+    titre = police.render("Jeu de Dames by YmC", True, RANDOM_COLORS_2)
     titre_rect = titre.get_rect(center=(TAILLE_FENETRE // 2, TAILLE_FENETRE // 4))
     FENETRE.blit(titre, titre_rect)
 
@@ -33,21 +33,26 @@ def dessiner_menu():
 
     bouton_1v1 = police_bouton.render("1 VS 1", True, NOIR)
     bouton_1v1_rect = bouton_1v1.get_rect(center=(TAILLE_FENETRE // 2, TAILLE_FENETRE // 2))
-    pygame.draw.rect(FENETRE, MARRON, bouton_1v1_rect.inflate(20, 10))
+    pygame.draw.rect(FENETRE, MARRON, bouton_1v1_rect.inflate(60, 30))  # 20,10
     FENETRE.blit(bouton_1v1, bouton_1v1_rect)
 
     bouton_1vcpu = police_bouton.render("1 VS CPU", True, NOIR)
     bouton_1vcpu_rect = bouton_1vcpu.get_rect(center=(TAILLE_FENETRE // 2, TAILLE_FENETRE // 2 + 100))
-    pygame.draw.rect(FENETRE, MARRON, bouton_1vcpu_rect.inflate(20, 10))
+    pygame.draw.rect(FENETRE, MARRON, bouton_1vcpu_rect.inflate(60, 30))
     FENETRE.blit(bouton_1vcpu, bouton_1vcpu_rect)
 
+    bouton_cpuvcpu = police_bouton.render("CPU VS CPU", True, NOIR)
+    bouton_cpuvcpu_rect = bouton_cpuvcpu.get_rect(center=(TAILLE_FENETRE // 2, TAILLE_FENETRE // 2 + 200))
+    pygame.draw.rect(FENETRE, MARRON, bouton_cpuvcpu_rect.inflate(60, 30))
+    FENETRE.blit(bouton_cpuvcpu, bouton_cpuvcpu_rect)
+
     pygame.display.update()
-    return bouton_1v1_rect, bouton_1vcpu_rect
+    return bouton_1v1_rect, bouton_1vcpu_rect , bouton_cpuvcpu_rect
 
 
 def main():
     # Menu principal
-    bouton_1v1_rect, bouton_1vcpu_rect = dessiner_menu()
+    bouton_1v1_rect, bouton_1vcpu_rect ,bouton_cpuvcpu_rect = dessiner_menu()
     mode_jeu = None
 
     # Boucle du menu
@@ -60,10 +65,14 @@ def main():
                 x, y = pygame.mouse.get_pos()
                 if bouton_1v1_rect.collidepoint(x, y):
                     mode_jeu = '1V1'
-                    mode.append('1V1')
+                    mode.append('1_VS_1')
                 elif bouton_1vcpu_rect.collidepoint(x, y):
                     mode_jeu = '1VCPU'
-                    mode.append('1VCPU')
+                    mode.append('1_VS_CPU')
+                elif bouton_cpuvcpu_rect.collidepoint(x, y):
+                    mode_jeu = 'CPUVCPU'
+                    mode.append('CPU_VS_CPU')
+
 
     # Démarrage du jeu
     jeu = Jeu(mode_jeu)
