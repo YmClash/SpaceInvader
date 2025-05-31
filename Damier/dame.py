@@ -27,7 +27,7 @@ class Jeu:
             self.ia_noir = IA(self, NOIR)
         else:
             self.ia = None
-            self.ia_2 = None
+            self.ia_noir = None
 
         self.dernier_mouvement = time.time()
         self.delai_ia = 0.5  # Délai entre les mouvements de l'IA
@@ -49,7 +49,7 @@ class Jeu:
 
     def actualiser(self, fenetre):
         # Gestion du réseau
-        if self.reseau and self.reseau.est_connecte:
+        if self.reseau and self.reseau.est_connecter:
             try:
                 if ((self.mode_jeu == MODE_HOTE and self.tour == BLANC) or
                         (self.mode_jeu == MODE_CLIENT and self.tour == NOIR)):
