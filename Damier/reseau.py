@@ -157,12 +157,27 @@ class ReseauJeu:
                     if not donnees:
                         raise ConnectionError("Connexion perdue - Aucune donnée reçue")
 
-                    donnees_dechiffrees = pickle.loads(donnees)
-                    if donnees_dechiffrees == "ping":
-                        self.dernier_ping = time.time()
-                        continue
-                    else:
-                        self.donnees_recues.put(donnees_dechiffrees)
+                    try:
+                        message = json.loads(donnees.decode())
+                        # Traiter les messages de ping/pong
+                        if message.get('type') == 'ping':
+                            self.recevoir_ping()
+                            continue
+                        elif message.get('type') == 'pong':
+                            self.recevoir_pong()
+                            continue
+                        # Autres messages
+                        with self.message_lock:
+                            self.messages_recus.append(message)
+                    except json.JSONDecodeError:
+                        # Essayer le format pickle pour la rétrocompatibilité
+                        donnees_dechiffrees = pickle.loads(donnees)
+                        if donnees_dechiffrees == "ping":
+                            self.dernier_ping = time.time()
+                            continue
+                        else:
+                            self.donnees_recues.put(donnees_dechiffrees)
+
                 except socket.timeout:
                     # Une timeout est normale, on continue
                     pass
@@ -253,38 +268,38 @@ class ReseauJeu:
             self.est_connecter = False
             return False
 
-    def recevoir_donnees_thread(self):
-        while self.est_connecter:
-            try:
-                donnees = self.socket.recv(4096)
-                if not donnees:
-                    print("Connexion perdue - aucune donnée reçue")
-                    self.deconnecter()
-                    break
-
-                message = json.loads(donnees.decode())
-
-                # Traiter les messages de ping/pong
-                if message.get('type') == 'ping':
-                    self.recevoir_ping()
-                    continue
-                elif message.get('type') == 'pong':
-                    self.recevoir_pong()
-                    continue
-
-                # Traiter les autres types de messages
-                with self.message_lock:
-                    self.messages_recus.append(message)
-
-            except socket.timeout:
-                continue
-            except json.JSONDecodeError:
-                print("Erreur décodage JSON")
-                continue
-            except Exception as e:
-                print(f"Erreur réception : {e}")
-                self.deconnecter()
-                break
+    # def recevoir_donnees_thread(self):
+    #     while self.est_connecter:
+    #         try:
+    #             donnees = self.socket.recv(4096)
+    #             if not donnees:
+    #                 print("Connexion perdue - aucune donnée reçue")
+    #                 self.deconnecter()
+    #                 break
+    #
+    #             message = json.loads(donnees.decode())
+    #
+    #             # Traiter les messages de ping/pong
+    #             if message.get('type') == 'ping':
+    #                 self.recevoir_ping()
+    #                 continue
+    #             elif message.get('type') == 'pong':
+    #                 self.recevoir_pong()
+    #                 continue
+    #
+    #             # Traiter les autres types de messages
+    #             with self.message_lock:
+    #                 self.messages_recus.append(message)
+    #
+    #         except socket.timeout:
+    #             continue
+    #         except json.JSONDecodeError:
+    #             print("Erreur décodage JSON")
+    #             continue
+    #         except Exception as e:
+    #             print(f"Erreur réception : {e}")
+    #             self.deconnecter()
+    #             break
 
     def recevoir_donnees(self):
         print("Reception des données...")
@@ -314,7 +329,19 @@ class ReseauJeu:
             pass
 
     def deconnecter(self):
-        pass
+        print("Déconnexion...")
+        self.est_connecte = False
+        self.running = False
+        if self.thread_reception:
+            self.thread_reception.join(timeout=1.0)
+        if self.thread_ping:
+            self.thread_ping.join(timeout=1.0)
+        if self.est_serveur and self.adversaire:
+            try:
+                self.adversaire.close()
+            except:
+                pass
+        self.adversaire = None
 
 
 
