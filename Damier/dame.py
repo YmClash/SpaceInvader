@@ -17,6 +17,14 @@ class Jeu:
         self.mode_jeu = mode_jeu
         self.reseau = reseau
 
+        # Définition des couleurs pour le mode en ligne
+        if mode_jeu == MODE_HOTE:
+            self.couleur_joueur = NOIR
+        elif mode_jeu == MODE_CLIENT:
+            self.couleur_joueur = BLANC
+        else:
+            self.couleur_joueur = None
+
         # Initialisation de l'IA
 
         if mode_jeu == '1VCPU':
@@ -57,16 +65,7 @@ class Jeu:
                 self.erreur_reseau = True
                 self.partie_terminee = True
                 self.message_fin = MESSAGE_CONNEXION_PERDUE
-            # try:
-            #     if ((self.mode_jeu == MODE_HOTE and self.tour == BLANC) or
-            #             (self.mode_jeu == MODE_CLIENT and self.tour == NOIR)):
-            #         donnees = self.reseau.recevoir_donnees()
-            #         if donnees:
-            #             self._appliquer_mouvement_reseau(donnees)
-            # except:
-            #     self.erreur_reseau = True
-            #     self.partie_terminee = True
-            #     self.message_fin = MESSAGE_CONNEXION_PERDUE
+
 
 
         # self.temps_partie = int(time.time() - self.temps_debut)
@@ -110,6 +109,13 @@ class Jeu:
         secondes = self.temps_partie % 60
         temps = self.police_score.render(f"Temps: {minutes:02d}:{secondes:02d}", True, ROUGE)
         fenetre.blit(temps, (TAILLE_FENETRE // 2 - 50, 10))
+
+        # Affichage du rôle en mode en ligne
+        if self.mode_jeu in [MODE_HOTE, MODE_CLIENT]:
+            role = "Noirs" if self.couleur_joueur == NOIR else "Blancs"
+            tour = "Votre tour" if self.est_mon_tour() else "Tour de l'adversaire"
+            info_role = self.police.render(f"Vous jouez les {role} - {tour}", True, VERT)
+            fenetre.blit(info_role, (TAILLE_FENETRE // 2 - 150, TAILLE_FENETRE - 30))
 
         # Afficher le message de fin si la partie est terminée
         if self.partie_terminee and self.gagnant:
@@ -185,6 +191,11 @@ class Jeu:
                 self._deplacer(ligne_arrivee, colonne_arrivee)
                 self.piece_selectionnee = None
 
+    def est_mon_tour(self):
+        if self.mode_jeu in [MODE_HOTE, MODE_CLIENT]:
+            return self.tour == self.couleur_joueur
+        return True
+
     def obtenir_mouvements_valides(self, piece):
         mouvements = []
 
@@ -207,6 +218,10 @@ class Jeu:
         return mouvements
 
     def selectionner(self, ligne, colonne):
+        if self.partie_terminee:
+            return False
+        if not self.est_mon_tour():
+            return False
         if self.piece_selectionnee:
             resultat = self._deplacer(ligne, colonne)
             if not resultat:
