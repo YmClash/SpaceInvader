@@ -7,11 +7,8 @@ TAILLE_FENETRE = 800
 TAILLE_CASE = TAILLE_FENETRE // 8
 
 
-
-
 ROUGE = (255, 0, 0)
 MARRON = (139, 69, 19)
-
 BEIGE = (245, 222, 179)
 
 DOM =  [random.randint(0, 255) for i in range(3)]
@@ -37,6 +34,10 @@ GRIS = (128, 128, 128)
 # Police et texte
 TAILLE_POLICE = 32
 TAILLE_POLICE_SCORE = 32
+
+
+
+
 
 # Points
 POINTS_CAPTURE = 1
@@ -64,4 +65,8 @@ DELAI_ATTENTE_CONNEXION = 60  # secondes
 # États de jeu en ligne
 MODE_HOTE = "HOTE"
 MODE_CLIENT = "CLIENT"
+
+# Information des joueurs
+INFO_ROLE_HOTE = "Vous jouez les pièces NOIRES"
+INFO_ROLE_CLIENT = "Vous jouez les pièces BLANCHES"
 
