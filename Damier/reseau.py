@@ -2,16 +2,22 @@ import socket
 import pickle
 import threading
 import time
+import queue
 
 
 
 class ReseauJeu:
     def __init__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.est_serveur = False
         self.est_connecter = False
         self.adversaire = None
         self.port = 5555
+
+        self.donnees_recues = queue.Queue()
+        self.thread_reception = None
+        self.running = False
 
 
     def creer_serveur(self):
@@ -20,59 +26,113 @@ class ReseauJeu:
             self.socket.bind(('', self.port))
             self.socket.listen(1)
             self.est_serveur = True
+            self.socket.settimeout(1.0)  # Timeout pour éviter de bloquer indéfiniment
+            print(f"Serveur créé sur le port {self.port}. En attente de connexion...")
             return True
-        except:
-            print("Erreur lors de la création du serveur.")
+        except Exception as e:
+            print(f'Erreur lors de la création du serveur: {e}')
             return False
 
     def connecter_client(self,ip):
-        print("En Attente d'un client...")
+        print(f'Connexion du client au serveur à l\'adresse {ip}...')
         try:
+            self.socket.settimeout(5.0)  # Timeout pour éviter de bloquer indéfiniment
             self.socket.connect((ip,self.port))
             self.est_connecter = True
-            print("Client Connecté au serveur.")
-        except:
-            print("Erreur lors de la connexion du Client au serveur.")
+            print("Client Connecté au serveur reussi.")
+            self._demmarrer_thread_reception()
+        except Exception as e:
+            print(f'Erreur lors de la connexion au serveur: {e}')
             return False
 
     def accepter_connexion(self):
+        print("Attente de connexion d'un client...")
         if self.est_serveur:
-            self.adversaire, _ = self.socket.accept()
-            self.est_connecter = True
-            print("Client connecté Accepter part lerserveur.")
-            return True
+            try:
+                self.adversaire, addr = self.socket.accept()
+                self.adversaire.settimeout(1.0)  # Timeout pour éviter de bloquer indéfiniment            self.est_connecter = True
+                print(f"Connexion acceptée de {addr}.")
+                self._demmarrer_thread_reception()
+                return True
+            except socket.timeout:
+                print("Aucune connexion acceptée dans le délai imparti.")
+                return False
+            except Exception as e:
+                print(f"Erreur lors de l'acceptation de la connexion: {e}")
+                return False
         return False
+
+
+    def _demmarrer_thread_reception(self):
+        self.thread_reception = threading.Thread(target=self._thread_reception)
+        self.thread_reception.daemon = True
+        self.thread_reception.start()
+
+    def _thread_reception(self):
+        while self.running and self.est_connecter:
+            try:
+                donnees = self.recevoir()
+                if donnees:
+                    self.donnees_recues.put(donnees)
+            except Exception as e:
+                print(f"Erreur dans le thread de réception: {e}")
+                self.est_connecter = False
+                break
+            time.sleep(0.01)
+
+
+    def _recevoir(self):
+        try:
+            if self.est_serveur and self.adversaire:
+                donnees = self.adversaire.recv(4096)
+            else:
+                donnees = self.socket.recv(4096)
+            if donnees:
+                return pickle.loads(donnees)
+        except socket.timeout:
+            pass
+        except Exception as e:
+            print(f"Erreur réception données: {e}")
+            raise
+        return None
+
 
     def envoyer_donnees(self, donnees):
         print("Envoi des données...")
         try:
-            if self.est_serveur:
-                print("Envoi des données au client...")
-                self.adversaire.send(pickle.dumps(donnees))
-            else:
-                self.socket.send(pickle.dumps(donnees))
+            data = pickle.dumps(donnees)
+            if self.est_serveur and self.adversaire:
+                self.adversaire.send(data)
+            elif not self.est_serveur:
+                self.socket.send(data)
             return True
-        except:
-            print("Erreur lors de l'envoi des données.")
+        except Exception as e:
+            print(f"Erreur lors de l'envoi des données: {e}")
+            self.est_connecter = False
             return False
 
     def recevoir_donnees(self):
         print("Reception des données...")
         try:
-            if self.est_serveur:
-                donnees = self.adversaire.recv(4096)
-            else:
-                donnees = self.socket.recv(4096)
-            return pickle.loads(donnees)
-        except:
-            print("Erreur lors de la réception des données.")
+            return self.donnees_recues.get_nowait()
+        except queue.Empty:
             return None
 
 
     def fermer(self):
+        self.running = False
+        if self.thread_reception:
+            self.thread_reception.join(timeout=1)
         if self.est_serveur and self.adversaire:
-            self.adversaire.close()
-        self.socket.close()
-        self.est_connecter = False
+            try:
+                self.adversaire.close()
+            except:
+                pass
+        try:
+            self.socket.close()
+        except:
+            pass
+        self.est_serveur = False
+
 
 
