@@ -122,15 +122,15 @@ class ReseauJeu:
     def recevoir_pong(self):
         self.dernier_ping = time.time()
 
-
-    def _demarrer_thread(self):
-        self.thread_reception = threading.Thread(target=self._thread_reception)
-        self.thread_reception.daemon = True
-        self.thread_reception.start()
-
-        self.thread_ping = threading.Thread(target=self._thread_ping)
-        self.thread_ping.daemon = True
-        self.thread_ping.start()
+    #
+    # def _demarrer_thread(self):
+    #     self.thread_reception = threading.Thread(target=self._thread_reception)
+    #     self.thread_reception.daemon = True
+    #     self.thread_reception.start()
+    #
+    #     self.thread_ping = threading.Thread(target=self._thread_ping)
+    #     self.thread_ping.daemon = True
+    #     self.thread_ping.start()
 
     def _envoyer_ping(self):
         try:
@@ -350,5 +350,11 @@ class ReseauJeu:
                 pass
         self.adversaire = None
 
+    def _demarrer_threads(self):
+        self.thread_reception = threading.Thread(target=self._thread_reception)
+        self.thread_reception.daemon = True
+        self.thread_reception.start()
 
-
+        self.thread_ping = threading.Thread(target=self._thread_ping)
+        self.thread_ping.daemon = True
+        self.thread_ping.start()
