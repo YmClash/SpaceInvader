@@ -56,15 +56,35 @@ class Jeu:
         self.police_score = pygame.font.Font(None, TAILLE_POLICE_SCORE)
 
     def actualiser(self, fenetre):
+        temps_actuel = time.time()
         # Gestion du réseau
-        if self.reseau and self.reseau.est_connecter:
-            donnees = self.reseau.recevoir_donnees()
-            if donnees:
-                self._appliquer_mouvement_reseau(donnees)
-            elif not self.reseau.est_connecter:
-                self.erreur_reseau = True
-                self.partie_terminee = True
-                self.message_fin = MESSAGE_CONNEXION_PERDUE
+        # if self.reseau and self.reseau.est_connecter:
+        #     donnees = self.reseau.recevoir_donnees()
+        #     if donnees:
+        #         self._appliquer_mouvement_reseau(donnees)
+        #     elif not self.reseau.est_connecter:
+        #         self.erreur_reseau = True
+        #         self.partie_terminee = True
+        #         self.message_fin = MESSAGE_CONNEXION_PERDUE
+
+        if self.reseau:
+            if not self.reseau.est_connecte:
+                if not self.partie_terminee:
+                    print("Déconnexion détectée")
+                    self.erreur_reseau = True
+                    self.partie_terminee = True
+                    self.message_fin = MESSAGE_CONNEXION_PERDUE
+            else:
+                try:
+                    donnees = self.reseau.recevoir_donnees()
+                    if donnees:
+                        if not self._appliquer_mouvement_reseau(donnees):
+                            print("Erreur lors de l'application du mouvement")
+                except Exception as e:
+                    print(f"Erreur réseau dans actualiser: {e}")
+                    self.erreur_reseau = True
+                    self.partie_terminee = True
+                    self.message_fin = MESSAGE_CONNEXION_PERDUE
 
 
 
@@ -235,7 +255,7 @@ class Jeu:
 
         return False
 
-    def _deplacer(self, ligne, colonne):
+    def _deplacer(self, ligne, colonne,envoyer_reseau=True):
         piece = self.plateau.get_piece(ligne, colonne)
         if not piece and (ligne + colonne) % 2 == 1:
             resultat_valide = False
@@ -254,15 +274,6 @@ class Jeu:
                     self.plateau.deplacer(self.piece_selectionnee, ligne, colonne)
                     resultat_valide = True
 
-                    # # Ajouter des points si la pièce devient une dame
-                    # if (ligne == 0 and self.tour == BLANC) or (ligne == 7 and self.tour == NOIR):
-                    #     if self.tour == NOIR:
-                    #         self.score_noir += POINTS_DAME
-                    #     else:
-                    #         self.score_blanc += POINTS_DAME
-                    #
-                    # self.changer_tour()
-                    # return True
             elif abs(ligne - self.piece_selectionnee.ligne) == 1:
                 self.plateau.deplacer(self.piece_selectionnee, ligne, colonne)
                 resultat_valide = True
@@ -275,29 +286,64 @@ class Jeu:
                     else:
                         self.score_blanc += POINTS_DAME
 
+                if envoyer_reseau:
+                    if not self._envoyer_mouvement_reseau(self.piece_selectionnee.ligne, self.piece_selectionnee.colonne, ligne, colonne):
+                        return False
+
+
+
                 # ENVOI DU MOUVEMENT AU RESEAU
-                if self.reseau and not self.erreur_reseau:
-                    if ((self.mode_jeu == MODE_HOTE and self.tour == NOIR) or
-                            (self.mode_jeu == MODE_CLIENT and self.tour == BLANC)):
-                        mouvement = (self.piece_selectionnee.ligne, self.piece_selectionnee.colonne,
-                                     ligne, colonne)
-                        if not self.reseau.envoyer_donnees(mouvement):
-                            self.erreur_reseau = True
-                            self.partie_terminee = True
-                            self.message_fin = MESSAGE_CONNEXION_PERDUE
-                            # self.afficher_message_fin(pygame.display.get_surface())
+                # if self.reseau and not self.erreur_reseau:
+                #     if ((self.mode_jeu == MODE_HOTE and self.tour == NOIR) or
+                #             (self.mode_jeu == MODE_CLIENT and self.tour == BLANC)):
+                #         mouvement = (self.piece_selectionnee.ligne, self.piece_selectionnee.colonne,
+                #                      ligne, colonne)
+                #         if not self.reseau.envoyer_donnees(mouvement):
+                #             self.erreur_reseau = True
+                #             self.partie_terminee = True
+                #             self.message_fin = MESSAGE_CONNEXION_PERDUE
+                #             # self.afficher_message_fin(pygame.display.get_surface())
 
                 self.changer_tour()
                 return True
         return False
 
+    # def _appliquer_mouvement_reseau(self, donnees):
+    #     ligne_depart, colonne_depart, ligne_arrivee, colonne_arrivee = donnees
+    #     piece = self.plateau.get_piece(ligne_depart, colonne_depart)
+    #     if piece and piece.couleur != self.couleur_joueur:
+    #         self.piece_selectionnee = piece
+    #         self._deplacer(ligne_arrivee, colonne_arrivee)
+    #         self.piece_selectionnee = None
     def _appliquer_mouvement_reseau(self, donnees):
-        ligne_depart, colonne_depart, ligne_arrivee, colonne_arrivee = donnees
-        piece = self.plateau.get_piece(ligne_depart, colonne_depart)
-        if piece:
-            self.piece_selectionnee = piece
-            self._deplacer(ligne_arrivee, colonne_arrivee)
-            self.piece_selectionnee = None
+        try:
+            ligne_depart, colonne_depart, ligne_arrivee, colonne_arrivee = donnees
+            piece = self.plateau.get_piece(ligne_depart, colonne_depart)
+            if piece and piece.couleur != self.couleur_joueur:  # Vérification supplémentaire
+                self.piece_selectionnee = piece
+                ancien_tour = self.tour
+                if self._deplacer(ligne_arrivee, colonne_arrivee, False):  # False = ne pas renvoyer le mouvement
+                    return True
+                self.tour = ancien_tour  # Restaurer le tour si le mouvement échoue
+            return False
+        except Exception as e:
+            print(f"Erreur mouvement réseau: {e}")
+            return False
+
+    def _envoyer_mouvement_reseau(self, ligne_depart, colonne_depart, ligne_arrivee, colonne_arrivee):
+        if self.reseau and not self.erreur_reseau:
+            if ((self.mode_jeu == MODE_HOTE and self.tour == NOIR) or
+                    (self.mode_jeu == MODE_CLIENT and self.tour == BLANC)):
+                mouvement = (ligne_depart, colonne_depart, ligne_arrivee, colonne_arrivee)
+                if not self.reseau.envoyer_donnees(mouvement):
+                    self.erreur_reseau = True
+                    self.partie_terminee = True
+                    self.message_fin = MESSAGE_CONNEXION_PERDUE
+                    return False
+                return True
+        return False
+
+
 
     def changer_tour(self):
         global count_noir, count_blanc
