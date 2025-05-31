@@ -15,8 +15,24 @@ BEIGE = (245, 222, 179)
 
 RANDOM_COLORS_1 = [random.randint(0, 255) for i in range(3)]
 RANDOM_COLORS_2 = [random.randint(0, 255) for i in range(3)]
+RANDOM_COLORS_3 = [random.randint(0, 255) for i in range(3)]
 
 # BLANC = (255, 255, 255)
 BLANC = RANDOM_COLORS_1  # Utilisation de la couleur aléatoire pour le blanc
+
+
+
+VERT = (0, 255, 0)
+BLEU = (0, 0, 255)
+GRIS = (128, 128, 128)
+
+# Police et texte
+TAILLE_POLICE = 32
+TAILLE_POLICE_SCORE = 32
+
+# Points
+POINTS_CAPTURE = 1
+POINTS_DAME = 2
+
 
 
