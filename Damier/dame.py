@@ -104,8 +104,8 @@ class Jeu:
 
         # Afficher le message du gagnant
         message = f"{'Noir' if self.gagnant == NOIR else 'Blanc'} a gagné!"
-        # texte = self.police.render(message, True, self.gagnant)
-        texte = self.police.render(message, True,VERT)
+        texte = self.police.render(message, True, self.gagnant)
+        # texte = self.police.render(message, True,VERT)
         rect_texte = texte.get_rect(center=(TAILLE_FENETRE // 2, TAILLE_FENETRE // 2))
         fenetre.blit(texte, rect_texte)
 
