@@ -49,6 +49,18 @@ MESSAGE_ATTENTE = "En attente d'un adversaire..."
 MESSAGE_ERREUR_CONNEXION = "Erreur de connexion"
 MESSAGE_CONNEXION_PERDUE = "Connexion perdue avec l'adversaire"
 
+MESSAGE_SERVEUR_PRET = "Serveur prêt - En attente d'un joueur..."
+MESSAGE_CONNEXION_REUSSIE = "Connexion établie ! La partie va commencer..."
+MESSAGE_IP_SERVEUR = "Adresse IP du serveur : {}"
+
+# Délais
+DELAI_AFFICHAGE_MESSAGE = 2  # secondes
+DELAI_ATTENTE_CONNEXION = 60  # secondes
+
+
+
+
+
 # États de jeu en ligne
 MODE_HOTE = "HOTE"
 MODE_CLIENT = "CLIENT"
