@@ -260,7 +260,7 @@ class ReseauJeu:
 
         if self.thread_reception:
             self.thread_reception.join(timeout=1.0)
-        if self.thread_ping:
+        if self._thread_ping:
             self.thread_ping.join(timeout=1.0)
 
         if self.est_serveur and self.adversaire:
