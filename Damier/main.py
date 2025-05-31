@@ -80,7 +80,7 @@ def attendre_connexion_serveur(reseau):
         afficher_message_attente(MESSAGE_SERVEUR_PRET, MESSAGE_IP_SERVEUR.format(ip_locale))
 
         if reseau.accepter_connexion():
-            afficher_message_attente(MESSAGE_CONNEXION_REUSSIE)
+            afficher_message_attente(MESSAGE_CONNEXION_REUSSIE, INFO_ROLE_HOTE)
             time.sleep(DELAI_AFFICHAGE_MESSAGE)
             return MODE_HOTE
 
@@ -181,9 +181,15 @@ def main():
                         reseau = ReseauJeu()
                         afficher_message_attente("Tentative de connexion...")
                         if reseau.connecter_client(ip):
-                            afficher_message_attente(MESSAGE_CONNEXION_REUSSIE)
+                            afficher_message_attente(MESSAGE_CONNEXION_REUSSIE,INFO_ROLE_CLIENT)
                             time.sleep(DELAI_AFFICHAGE_MESSAGE)
                             mode_jeu = 'MODE_CLIENT'
+                        else:
+                            afficher_message_attente(MESSAGE_ERREUR_CONNEXION)
+                            time.sleep(DELAI_AFFICHAGE_MESSAGE)
+                            reseau.fermer()
+                            reseau = None
+                            return main()
 
 
 
@@ -201,7 +207,7 @@ def main():
                     if reseau:
                         reseau.fermer()
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN and jeu.est_mon_tour():
                     if mode_jeu in ['1V1', MODE_HOTE, MODE_CLIENT]:
                         if (mode_jeu == '1V1') or \
                                 (mode_jeu == MODE_HOTE and jeu.tour == NOIR) or \
