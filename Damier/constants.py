@@ -14,9 +14,11 @@ MARRON = (139, 69, 19)
 
 BEIGE = (245, 222, 179)
 
+DOM =  [random.randint(0, 255) for i in range(3)]
+
 
 RANDOM_COLORS_1 = [random.randint(0, 255) for i in range(3)]
-RANDOM_COLORS_2 = [random.randint(0, 255) for i in range(3)]
+RANDOM_COLORS_2 = DOM
 RANDOM_COLORS_3 = [random.randint(0, 255) for i in range(3)]
 
 
@@ -41,4 +43,13 @@ POINTS_CAPTURE = 1
 POINTS_DAME = 2
 
 
+
+
+MESSAGE_ATTENTE = "En attente d'un adversaire..."
+MESSAGE_ERREUR_CONNEXION = "Erreur de connexion"
+MESSAGE_CONNEXION_PERDUE = "Connexion perdue avec l'adversaire"
+
+# États de jeu en ligne
+MODE_HOTE = "HOTE"
+MODE_CLIENT = "CLIENT"
 
