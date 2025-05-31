@@ -4,17 +4,18 @@ from plateaux import Plateau
 from ia import IA
 import time
 
-
-count_noir= 0
+count_noir = 0
 count_blanc = 0
 
+
 class Jeu:
-    def __init__(self,mode_jeu='1V1'):
+    def __init__(self, mode_jeu='1V1', reseau=None):
         self.plateau = Plateau()
         self.tour = NOIR
         self.piece_selectionnee = None
         self.mouvements_valides = []
         self.mode_jeu = mode_jeu
+        self.reseau = reseau
 
         # Initialisation de l'IA
 
@@ -28,7 +29,6 @@ class Jeu:
             self.ia = None
             self.ia_2 = None
 
-
         self.dernier_mouvement = time.time()
         self.delai_ia = 0.5  # Délai entre les mouvements de l'IA
 
@@ -41,16 +41,32 @@ class Jeu:
 
         self.partie_terminee = False
         self.gagnant = None
+        self.erreur_reseau = False
+
         pygame.font.init()
         self.police = pygame.font.Font(None, TAILLE_POLICE)
         self.police_score = pygame.font.Font(None, TAILLE_POLICE_SCORE)
 
-
     def actualiser(self, fenetre):
+        # Gestion du réseau
+        if self.reseau and self.reseau.est_connecte:
+            try:
+                if ((self.mode_jeu == MODE_HOTE and self.tour == BLANC) or
+                        (self.mode_jeu == MODE_CLIENT and self.tour == NOIR)):
+                    donnees = self.reseau.recevoir_donnees()
+                    if donnees:
+                        self._appliquer_mouvement_reseau(donnees)
+            except:
+                self.erreur_reseau = True
+                self.partie_terminee = True
+                self.message_fin = MESSAGE_CONNEXION_PERDUE
+
         # self.temps_partie = int(time.time() - self.temps_debut)
         self.plateau.dessiner(fenetre)
         self.dessiner_mouvements_valides(fenetre)
         self.dessiner_interface(fenetre)
+
+        pygame.display.update()
 
         # Mise à jour du chronomètre
         if not self.partie_terminee:
@@ -69,14 +85,10 @@ class Jeu:
                     self.jouer_tour_ia()
                     self.dernier_mouvement = temps_actuel
 
-
-
         # Vérification de fin de partie
         self.verifier_fin_partie()
 
-
-
-        pygame.display.update()
+        # pygame.display.update()
 
     def dessiner_interface(self, fenetre):
         # Afficher les scores
@@ -98,12 +110,12 @@ class Jeu:
     def afficher_message_fin(self, fenetre):
         # Créer un fond semi-transparent
         # fond = pygame.Surface((TAILLE_FENETRE, TAILLE_FENETRE))
-        fond = pygame.Surface((600,200))
+        fond = pygame.Surface((600, 200))
         fond.fill(BEIGE)
         # fond.set_alpha(128)
         fond.set_alpha(230)
 
-        fenetre.blit(fond, (TAILLE_FENETRE//2 - 300, TAILLE_FENETRE//2 - 50))
+        fenetre.blit(fond, (TAILLE_FENETRE // 2 - 300, TAILLE_FENETRE // 2 - 50))
 
         # Afficher le message du gagnant
         message = f"{'Noir' if self.gagnant == NOIR else 'Blanc'} a gagné!"
@@ -136,17 +148,14 @@ class Jeu:
             self.partie_terminee = True
             self.gagnant = NOIR
 
-
     def dessiner_mouvements_valides(self, fenetre):
         if self.piece_selectionnee:
             self.mouvements_valides = self.obtenir_mouvements_valides(self.piece_selectionnee)
             for mouvenent in self.mouvements_valides:
-                ligne,colonne = mouvenent
+                ligne, colonne = mouvenent
                 x = colonne * TAILLE_CASE + TAILLE_CASE // 2
                 y = ligne * TAILLE_CASE + TAILLE_CASE // 2
-                pygame.draw.circle(fenetre,ROUGE,(x,y),15)
-
-
+                pygame.draw.circle(fenetre, ROUGE, (x, y), 15)
 
     def jouer_tour_ia(self):
         mouvement = self.ia.obtenir_mouvement()
@@ -158,17 +167,15 @@ class Jeu:
                 self._deplacer(ligne_arrivee, colonne_arrivee)
                 self.piece_selectionnee = None
 
-
     def jouer_tour_ia_noir(self):
         mouvement = self.ia_noir.obtenir_mouvement()
         if mouvement:
-            ligne_depart,colonne_depart, ligne_arrivee, colonne_arrivee = mouvement
+            ligne_depart, colonne_depart, ligne_arrivee, colonne_arrivee = mouvement
             piece = self.plateau.get_piece(ligne_depart, colonne_depart)
             if piece:
                 self.piece_selectionnee = piece
                 self._deplacer(ligne_arrivee, colonne_arrivee)
                 self.piece_selectionnee = None
-
 
     def obtenir_mouvements_valides(self, piece):
         mouvements = []
@@ -191,8 +198,6 @@ class Jeu:
 
         return mouvements
 
-
-
     def selectionner(self, ligne, colonne):
         if self.piece_selectionnee:
             resultat = self._deplacer(ligne, colonne)
@@ -210,6 +215,7 @@ class Jeu:
     def _deplacer(self, ligne, colonne):
         piece = self.plateau.get_piece(ligne, colonne)
         if not piece and (ligne + colonne) % 2 == 1:
+            resultat_valide = False
             if abs(ligne - self.piece_selectionnee.ligne) == 2:
                 ligne_milieu = (ligne + self.piece_selectionnee.ligne) // 2
                 colonne_milieu = (colonne + self.piece_selectionnee.colonne) // 2
@@ -223,19 +229,22 @@ class Jeu:
 
                     self.plateau.supprimer_piece(piece_milieu)
                     self.plateau.deplacer(self.piece_selectionnee, ligne, colonne)
+                    resultat_valide = True
 
-                    # Ajouter des points si la pièce devient une dame
-                    if (ligne == 0 and self.tour == BLANC) or (ligne == 7 and self.tour == NOIR):
-                        if self.tour == NOIR:
-                            self.score_noir += POINTS_DAME
-                        else:
-                            self.score_blanc += POINTS_DAME
-
-                    self.changer_tour()
-                    return True
+                    # # Ajouter des points si la pièce devient une dame
+                    # if (ligne == 0 and self.tour == BLANC) or (ligne == 7 and self.tour == NOIR):
+                    #     if self.tour == NOIR:
+                    #         self.score_noir += POINTS_DAME
+                    #     else:
+                    #         self.score_blanc += POINTS_DAME
+                    #
+                    # self.changer_tour()
+                    # return True
             elif abs(ligne - self.piece_selectionnee.ligne) == 1:
                 self.plateau.deplacer(self.piece_selectionnee, ligne, colonne)
+                resultat_valide = True
 
+            if resultat_valide:
                 # Ajouter des points si la pièce devient une dame
                 if (ligne == 0 and self.tour == BLANC) or (ligne == 7 and self.tour == NOIR):
                     if self.tour == NOIR:
@@ -243,10 +252,29 @@ class Jeu:
                     else:
                         self.score_blanc += POINTS_DAME
 
+                # ENVOI DU MOUVEMENT AU RESEAU
+                if self.reseau and not self.erreur_reseau:
+                    if ((self.mode_jeu == MODE_HOTE and self.tour == NOIR) or
+                            (self.mode_jeu == MODE_CLIENT and self.tour == BLANC)):
+                        mouvement = (self.piece_selectionnee.ligne, self.piece_selectionnee.colonne,
+                                     ligne, colonne)
+                        if not self.reseau.envoyer_donnees(mouvement):
+                            self.erreur_reseau = True
+                            self.partie_terminee = True
+                            self.message_fin = MESSAGE_CONNEXION_PERDUE
+                            # self.afficher_message_fin(pygame.display.get_surface())
+
                 self.changer_tour()
                 return True
         return False
 
+    def _appliquer_mouvement_reseau(self, donnees):
+        ligne_depart, colonne_depart, ligne_arrivee, colonne_arrivee = donnees
+        piece = self.plateau.get_piece(ligne_depart, colonne_depart)
+        if piece:
+            self.piece_selectionnee = piece
+            self._deplacer(ligne_arrivee, colonne_arrivee)
+            self.piece_selectionnee = None
 
     def changer_tour(self):
         global count_noir, count_blanc
