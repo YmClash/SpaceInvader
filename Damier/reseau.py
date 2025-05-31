@@ -12,16 +12,15 @@ class ReseauJeu:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.est_serveur = False
-        self.est_connecter = False
+        self.est_connecte = False
         self.adversaire = None
         self.port = 5555
-
         self.donnees_recues = queue.Queue()
         self.thread_reception = None
-        # self.running = False
+        self.thread_ping = None
         self.running = True
-        self.dernier_ping =  time.time()
-        self.delai_timeout = 10.0  # Délai de timeout pour la connexion
+        self.dernier_ping = time.time()
+        self.delai_timeout = 10.0  # 10 secondes sans réponse = déconnexion
         self.derniere_verification_ping = time.time()
         self.intervalle_ping = 2.0  # Envoyer un ping toutes les 2 secondes
         self.messages_recus = []
@@ -127,10 +126,11 @@ class ReseauJeu:
 
     def _envoyer_ping(self):
         try:
+            message = pickle.dumps("ping")
             if self.est_serveur and self.adversaire:
-                self.adversaire.send(b'ping')
+                self.adversaire.send(message)
             elif not self.est_serveur:
-                self.socket.send(b'ping')
+                self.socket.send(message)
             return True
         except:
             return False
@@ -143,11 +143,8 @@ class ReseauJeu:
         return True
 
     def _thread_reception(self):
-        while self.running and self.est_connecter:
+        while self.running and self.est_connecte:
             try:
-                # donnees = self._recevoir()
-                # if donnees:
-                #     self.donnees_recues.put(donnees)
                 if self.est_serveur and self.adversaire:
                     socket_actif = self.adversaire
                 else:
@@ -157,27 +154,69 @@ class ReseauJeu:
                 try:
                     donnees = socket_actif.recv(4096)
                     if not donnees:
-                        raise ConnectionError("Connexion perdue")
+                        raise ConnectionError("Connexion perdue - Aucune donnée reçue")
 
-                    if donnees == b'ping':
+                    donnees_dechiffrees = pickle.loads(donnees)
+                    if donnees_dechiffrees == "ping":
                         self.dernier_ping = time.time()
-                        if self._envoyer_ping():  # Répondre au ping
-                            continue
+                        continue
                     else:
-                        self.donnees_recues.put(pickle.loads(donnees))
+                        self.donnees_recues.put(donnees_dechiffrees)
                 except socket.timeout:
-                    # Envoyer un ping périodique
-                    if not self._envoyer_ping():
-                        raise ConnectionError("Échec d'envoi du ping")
+                    # Une timeout est normale, on continue
+                    pass
+                except Exception as e:
+                    print(f"Erreur lors de la réception : {e}")
+                    raise
 
+                # Vérification de la connexion
                 if not self._verifier_connexion():
+                    print("Connexion perdue - Timeout de ping")
                     break
+
             except Exception as e:
-                # print(f"Erreur dans le thread de réception: {e}")
-                print(f'Erreur Thread de réception: {e}')
-                self.est_connecter = False
+                print(f"Erreur thread réception: {e}")
+                self.est_connecte = False
                 break
+
             time.sleep(0.01)
+
+    # def _thread_reception(self):
+    #     while self.running and self.est_connecter:
+    #         try:
+    #             # donnees = self._recevoir()
+    #             # if donnees:
+    #             #     self.donnees_recues.put(donnees)
+    #             if self.est_serveur and self.adversaire:
+    #                 socket_actif = self.adversaire
+    #             else:
+    #                 socket_actif = self.socket
+    #
+    #             socket_actif.settimeout(1.0)
+    #             try:
+    #                 donnees = socket_actif.recv(4096)
+    #                 if not donnees:
+    #                     raise ConnectionError("Connexion perdue")
+    #
+    #                 if donnees == b'ping':
+    #                     self.dernier_ping = time.time()
+    #                     if self._envoyer_ping():  # Répondre au ping
+    #                         continue
+    #                 else:
+    #                     self.donnees_recues.put(pickle.loads(donnees))
+    #             except socket.timeout:
+    #                 # Envoyer un ping périodique
+    #                 if not self._envoyer_ping():
+    #                     raise ConnectionError("Échec d'envoi du ping")
+    #
+    #             if not self._verifier_connexion():
+    #                 break
+    #         except Exception as e:
+    #             # print(f"Erreur dans le thread de réception: {e}")
+    #             print(f'Erreur Thread de réception: {e}')
+    #             self.est_connecter = False
+    #             break
+    #         time.sleep(0.01)
 
 
     def _recevoir(self):
@@ -260,7 +299,7 @@ class ReseauJeu:
 
         if self.thread_reception:
             self.thread_reception.join(timeout=1.0)
-        if self._thread_ping:
+        if self.thread_ping:
             self.thread_ping.join(timeout=1.0)
 
         if self.est_serveur and self.adversaire:
