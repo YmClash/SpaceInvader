@@ -48,7 +48,8 @@ class ReseauJeu:
             self.est_connecter = True
             self.dernier_ping = time.time()  # Réinitialiser le dernier ping
             print("Client Connecté au serveur reussi.")
-            self._demmarrer_thread_reception()
+            # self._demmarrer_thread_reception()
+            self._demarrer_thread()
             return True
         except Exception as e:
             print(f'Erreur lors de la connexion au serveur: {e}')
