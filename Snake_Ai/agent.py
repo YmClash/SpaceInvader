@@ -18,7 +18,8 @@ class Agent:
         self.epsilon = 0
         self.gamma = 0.9
         self.memory = deque(maxlen=MAX_MEMORY)
-        self.model = QNET_Neuronal(11, 1024, 3)
+        # self.model = QNET_Neuronal(11, 1024, 3)
+        self.model = QNET_Neuronal(input_size=24, hidden_size=54, output_size=4)
         self.trainer = Qtrainer(self.model, lr=LR, gamma=self.gamma)
 
         self.model = self.model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
