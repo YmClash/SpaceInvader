@@ -68,7 +68,7 @@ class Jeu:
         #         self.message_fin = MESSAGE_CONNEXION_PERDUE
 
         if self.reseau:
-            if not self.reseau.est_connecte:
+            if not self.reseau.est_connecter:
                 if not self.partie_terminee:
                     print("Déconnexion détectée")
                     self.erreur_reseau = True
