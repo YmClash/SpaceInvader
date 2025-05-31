@@ -97,10 +97,13 @@ class Jeu:
 
     def afficher_message_fin(self, fenetre):
         # Créer un fond semi-transparent
-        fond = pygame.Surface((TAILLE_FENETRE, TAILLE_FENETRE))
-        fond.set_alpha(128)
-        fond.fill(GRIS)
-        fenetre.blit(fond, (0, 0))
+        # fond = pygame.Surface((TAILLE_FENETRE, TAILLE_FENETRE))
+        fond = pygame.Surface((600,200))
+        fond.fill(BEIGE)
+        # fond.set_alpha(128)
+        fond.set_alpha(230)
+
+        fenetre.blit(fond, (TAILLE_FENETRE//2 - 300, TAILLE_FENETRE//2 - 50))
 
         # Afficher le message du gagnant
         message = f"{'Noir' if self.gagnant == NOIR else 'Blanc'} a gagné!"
