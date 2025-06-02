@@ -207,7 +207,7 @@ def main():
                     if reseau:
                         reseau.fermer()
 
-                if event.type == pygame.MOUSEBUTTONDOWN and jeu.est_mon_tour():
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     if mode_jeu in ['1V1', MODE_HOTE, MODE_CLIENT]:
                         if (mode_jeu == '1V1') or \
                                 (mode_jeu == MODE_HOTE and jeu.tour == NOIR) or \
